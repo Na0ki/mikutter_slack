@@ -18,89 +18,98 @@ Plugin.create(:mikutter_slack) do
     config.token = TOKEN['auth']['token']
   end
 
+  # DEBUG
   p Slack.auth_test
 
-  # RTM(Real Time Messaging)に接続
-  client = Slack.realtime
-  event = Slack::Client.new
+  # RTM 及び Events API のインスタンス
+  # RTM API: https://api.slack.com/faq#real_time_messaging_api
+  # Events API: https://api.slack.com/faq#events_api
+  RTM = Slack.realtime
+  EVENTS = Slack::Client.new
 
-  p client
-  p event
 
   # Get users list
-  def get_users_list(c)
-    users = Hash[c.users_list['members'].map { |m| [m['id'], m['name']] }]
-    return users
-  end
+  def get_users_list(events)
+    users = Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
+    return users end
 
 
   # Get channels list
-  def get_channel_list(c)
-    channels = c.channels_list['channels']
-    return channels
-  end
+  def get_channel_list(events)
+    channels = events.channels_list['channels']
+    return channels end
 
-  client.on :hello do
+
+  # Get channel history
+  #{
+  #   "id"=>"CHANNEL_ID",
+  #   "name"=>"CHANNEL_NAME",
+  #   "is_channel"=>BOOLEAN,
+  #   "created"=>UNIX_TIME,
+  #   "creator"=>"USER_ID",
+  #   "is_archived"=>BOOLEAN,
+  #   "is_general"=>BOOLEAN,
+  #   "is_member"=>BOOLEAN,
+  #   "members"=>["USER_ID"],
+  #   "topic"=>{
+  #     "value"=>"",
+  #     "creator"=>"",
+  #     "last_set"=>0},
+  #     "purpose"=>{
+  #       "value"=>"mikutterでslack",
+  #       "creator"=>"USER_ID",
+  #       "last_set"=>UNIX_TIME
+  #     },
+  #   "num_members"=>1
+  #}
+  def get_channel_history(channel)
+    users = get_users_list(client)
+    # TODO: テスト用のコードのため要修正
+    if channel['name'] == 'mikutter'
+      messages = client.channels_history(channel: "#{channel['id']}")['messages']
+      messages.each do |message|
+        username = users[message['user']]
+        print "@#{username} "
+        puts message['text']
+      end
+    end end
+
+
+  # 接続時に呼ばれる
+  # 接続時に以下のようにチャンネルの最後のメッセージが呼ばれる
+  #{
+  #   "reply_to"=>6642,
+  #   "type"=>"message",
+  #   "channel"=>"CHANNEL_ID",
+  #   "user"=>"USER_ID",
+  #   "text"=>"テストメッセージ",
+  #   "ts"=>"1472728555.000003"
+  # }
+  RTM.on :hello do
     puts 'Successfully connected.'
-    p get_users_list(event)
-    p get_channel_list(event)
+    p get_users_list(EVENTS)
+    p get_channel_list(EVENTS)
     p DEFINED_TIME
   end
 
 
-  client.on :message do |data|
+  # メッセージ書き込み時に呼ばれる
+  #{
+  #   "type"=>"TYPE",
+  #   "channel"=>"CHANNEL_ID",
+  #   "user"=>"USER_ID",
+  #   "text"=>"MESSAGE",
+  #   "ts"=>"UNIX_TIME_FLOAT",
+  #   "team"=>"TEAM_ID"
+  # }
+  RTM.on :message do |data|
     p data
     if DEFINED_TIME < data['ts'].to_f
       Service.primary.post(:message => "#{data['text']}")
     end
   end
 
-  client.start
 
-  # RTM.start_async do
-  #   RTM.on :message do |data|
-  #     puts data
-  #
-  #     text = ''
-  #
-  #     if data['text'].include?('ておくれ')
-  #       text = 'としぁ'
-  #       RTM.message channel: data['channel'], text: text
-  #     end
-  #     if data['text'].include?('おるみん')
-  #       text = '大破'
-  #       RTM.message channel: data['channel'], text: text
-  #     end
-  #     if data['text'].include?('eject')
-  #       text = '(☝ ՞ਊ ՞)☝ウイーン'
-  #       RTM.message channel: data['channel'], text: text
-  #     end
-  #
-  #     Service.primary.post(:message => "#{data.text}#{text}", :system => true)
-  #   end
-  # end
-  #
-  # RTM.on :hello do
-  #   puts 'connected!'
-  #   # RTM.message channel: 'C25K3E94J', text: 'connected!'
-  # end
+  RTM.start
 
-
-  # users = get_users_list(client)
-  # channels = get_channel_list(client)
-  #
-  #
-  # channels.each do |channel|
-  #   c_name = channel['name']
-  #   if c_name == 'mikutter'
-  #     puts "- id: #{channel['id']}, name: #{channel['name']}"
-  #     # Get channel history
-  #     messages = client.channels_history(channel: "#{channel['id']}")['messages']
-  #     messages.each do |message|
-  #       username = users[message['user']]
-  #       print "@#{username} "
-  #       puts message['text']
-  #     end
-  #   end
-  # end
 end
