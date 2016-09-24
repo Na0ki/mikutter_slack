@@ -113,7 +113,6 @@ Plugin.create(:mikutter_slack) do
     end
   end
 
-
   on_appear do |ms|
     ms.each do |m|
       puts m.to_s
@@ -127,7 +126,12 @@ Plugin.create(:mikutter_slack) do
     end
   end
 
-#  EVENTS.files_upload
+  settings 'Slack' do
+    input 'ユーザー名', :slack_username
+    password 'パスワード', :slack_password
+    input 'トークン', :slack_token
+  end
+
 
   RTM.start
 
