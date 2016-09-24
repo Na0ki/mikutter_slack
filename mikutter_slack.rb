@@ -109,7 +109,8 @@ Plugin.create(:mikutter_slack) do
     end
   end
 
-
-  RTM.start
+  Thread.new do
+    RTM.start
+  end
 
 end
