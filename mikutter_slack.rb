@@ -31,16 +31,13 @@ Plugin.create(:mikutter_slack) do
   # Get users list
   def get_users_list(events)
     users = Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
-    return users
-  end
+    return users end
 
 
   # Get channels list
   def get_channel_list(events)
-    p events.channels_list
     channels = events.channels_list['channels']
-    return channels
-  end
+    return channels end
 
 
   # Get channel history
@@ -75,8 +72,7 @@ Plugin.create(:mikutter_slack) do
         print "@#{username} "
         puts message['text']
       end
-    end
-  end
+    end end
 
 
   # 接続時に呼ばれる
@@ -91,9 +87,9 @@ Plugin.create(:mikutter_slack) do
   # }
   RTM.on :hello do
     puts 'Successfully connected.'
-
-    get_users_list(EVENTS)    # DEBUG
-    get_channel_list(EVENTS)  # DEBUG
+    p get_users_list(EVENTS)
+    p get_channel_list(EVENTS)
+    p DEFINED_TIME
   end
 
 
@@ -107,32 +103,14 @@ Plugin.create(:mikutter_slack) do
   #   "team"=>"TEAM_ID"
   # }
   RTM.on :message do |data|
-    p data  # DEBUG
+    p data
     if DEFINED_TIME < data['ts'].to_f
       Service.primary.post(:message => "#{data['text']}")
     end
   end
 
-  on_appear do |ms|
-    ms.each do |m|
-      puts m.to_s
-      if  m[:created] > DEFINED_TIME
-        params = {
-            channel: 'mikutter',
-            text: m.to_s
-        }
-        EVENTS.chat_postMessage params
-      end
-    end
+  Thread.new do
+    RTM.start
   end
-
-  settings 'Slack' do
-    input 'ユーザー名', :slack_username
-    password 'パスワード', :slack_password
-    input 'トークン', :slack_token
-  end
-
-
-  RTM.start
 
 end
