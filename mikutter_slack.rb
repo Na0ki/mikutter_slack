@@ -4,7 +4,7 @@ require 'yaml'
 
 Plugin.create(:mikutter_slack) do
 
-  DEFINED_TIME = Time.new.freeze.to_f
+  DEFINED_TIME = Time.new.freeze
 
   # conf.yml からトークンを取得
   begin
@@ -74,6 +74,22 @@ Plugin.create(:mikutter_slack) do
       end
     end end
 
+  def get_emoji_list
+    return EVENTS.emoji_list
+  end
+
+  def get_icon(events, id)
+    events.users_list['members'].each { |u|
+      p u
+      if u['id'] == id
+        puts 'It\'s me!!!'
+        p u.dig('profile', 'image_48')
+        return u.dig('profile', 'image_48')
+      end
+    }
+    return Skin.get('icon.png')
+  end
+
 
   # 接続時に呼ばれる
   # 接続時に以下のようにチャンネルの最後のメッセージが呼ばれる
@@ -87,9 +103,8 @@ Plugin.create(:mikutter_slack) do
   # }
   RTM.on :hello do
     puts 'Successfully connected.'
-    p get_users_list(EVENTS)
-    p get_channel_list(EVENTS)
-    p DEFINED_TIME
+    # p get_users_list(EVENTS)
+    # p get_channel_list(EVENTS)
   end
 
 
@@ -103,14 +118,38 @@ Plugin.create(:mikutter_slack) do
   #   "team"=>"TEAM_ID"
   # }
   RTM.on :message do |data|
-    p data
-    if DEFINED_TIME < data['ts'].to_f
-      Service.primary.post(:message => "#{data['text']}")
-    end
+    users = get_users_list(EVENTS)
+    user = Mikutter::System::User.new(idname: "#{users[data['user']]}",
+                                      name: "#{users[data['user']]}",
+                                      profile_image_url: get_icon(EVENTS, data['user']))
+    timeline(:home_timeline) << Mikutter::System::Message.new(user: user,
+                                                              description: "#{data['text']}")
   end
 
   Thread.new do
     RTM.start
+  end
+
+
+  # コメントイン非推奨メソッド
+  # on_appear do |ms|
+  #   ms.each do |m|
+  #     puts m.to_s
+  #     if  m[:created] > DEFINED_TIME
+  #       params = {
+  #           channel: 'mikutter',
+  #           text: m.to_s
+  #       }
+  #       EVENTS.chat_postMessage params
+  #     end
+  #   end
+  # end
+
+  # 設定画面
+  settings 'Slack' do
+    input 'ユーザー名', :slack_username
+    inputpass 'パスワード', :slack_password
+    input 'トークン', :slack_token
   end
 
 end
