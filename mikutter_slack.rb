@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 require 'slack'
-require 'yaml'
 
 Plugin.create(:mikutter_slack) do
 
@@ -147,7 +146,7 @@ Plugin.create(:mikutter_slack) do
 
   # 設定画面
   settings 'Slack' do
-    settings 'Slackアカウント' do
+    settings 'Slack アカウント' do
       input 'メールアドレス', :mikutter_slack_email
       inputpass 'パスワード', :mikutter_slack_password
     end
