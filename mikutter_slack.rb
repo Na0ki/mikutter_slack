@@ -147,9 +147,15 @@ Plugin.create(:mikutter_slack) do
 
   # 設定画面
   settings 'Slack' do
-    input 'ユーザー名', :slack_username
-    inputpass 'パスワード', :slack_password
-    input 'トークン', :slack_token
+    settings 'Slackアカウント' do
+      input 'メールアドレス', :mikutter_slack_email
+      inputpass 'パスワード', :mikutter_slack_password
+    end
+
+    settings '開発' do
+      input 'トークン', :slack_token
+    end
+
   end
 
 end
