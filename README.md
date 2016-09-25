@@ -7,4 +7,4 @@ Slack on mikutter
 1. *confirm* をクリックします。
 1. *Token* の列に表示されているテキストをコピーします。
 1. mikutterを起動し、Slackの設定の「開発」の *トークン* に上記トークンをコピーします。
-1. mikutterを再起動すれば認証がされます。****
+1. mikutterを再起動すれば認証がされます。
