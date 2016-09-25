@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 require 'slack'
+require_relative 'retriever'
 
 Plugin.create(:mikutter_slack) do
+
+  filter_extract_datasources do |ds|
+    [ds.merge(mikutter_slack: 'Slack')]
+  end
+
 
   DEFINED_TIME = Time.new.freeze
 
