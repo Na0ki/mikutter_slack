@@ -124,6 +124,8 @@ Plugin.create(:mikutter_slack) do
   # }
   RTM.on :message do |data|
     users = get_users_list(EVENTS)
+
+    # TODO: モデルでこの部分を調整する
     user = Mikutter::System::User.new(idname: "#{users[data['user']]}",
                                       name: "#{users[data['user']]}",
                                       profile_image_url: get_icon(EVENTS, data['user']))
@@ -135,20 +137,6 @@ Plugin.create(:mikutter_slack) do
     RTM.start
   end
 
-
-  # コメントイン非推奨メソッド
-  # on_appear do |ms|
-  #   ms.each do |m|
-  #     puts m.to_s
-  #     if  m[:created] > DEFINED_TIME
-  #       params = {
-  #           channel: 'mikutter',
-  #           text: m.to_s
-  #       }
-  #       EVENTS.chat_postMessage params
-  #     end
-  #   end
-  # end
 
   # 設定画面
   settings 'Slack' do
