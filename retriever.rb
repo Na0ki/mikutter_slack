@@ -10,7 +10,7 @@ module Plugin::Slack
 
     field.string :type, required: true
     field.string :channel, required: true
-    field.has :user, Mikutter::Slack::User, required: true
+    field.has :user, Plugin::Slack::User, required: true
     field.string :text, required: true
     field.string :ts, required: true
     field.string :team, required: true
