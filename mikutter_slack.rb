@@ -9,7 +9,7 @@ Plugin.create(:mikutter_slack) do
   token = UserConfig['mikutter_slack_token']
   unless token.empty? || token == nil?
     Slack.configure do |config|
-      config.token = UserConfig['mikutter_slack_token']
+      config.token = token
     end
   end
 
