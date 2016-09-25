@@ -2,7 +2,7 @@
 slug: :mikutter_slack
 depends:
   mikutter: 3.3.9
-  plugin: [streaming]
+  plugin: []
 version: '0.0.1'
 author: ahiru
 name: mikutter_slack

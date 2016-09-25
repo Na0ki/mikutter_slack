@@ -6,20 +6,22 @@ Plugin.create(:mikutter_slack) do
 
   DEFINED_TIME = Time.new.freeze
 
-  # conf.yml からトークンを取得
-  begin
-    TOKEN = YAML.load_file(File.join(__dir__, 'conf.yml'))
-  rescue LoadError
-    notice 'Could not load conf file'
-  end
-
   # トークンを設定
-  Slack.configure do |config|
-    config.token = TOKEN['auth']['token']
+  token = UserConfig['mikutter_slack_token']
+  unless token.empty? || token == nil?
+    Slack.configure do |config|
+      config.token = UserConfig['mikutter_slack_token']
+    end
   end
 
-  # DEBUG
-  p Slack.auth_test
+
+  # 認証テスト
+  def auth_test
+    auth = Slack.auth_test
+    result = auth['ok'] ? '成功' : '失敗'
+    timeline(:home_timeline) << Mikutter::System::Message.new(description: "Slackチーム #{auth['team']} の認証に#{result}しました！\n")
+  end
+
 
   # RTM 及び Events API のインスタンス
   # RTM API: https://api.slack.com/faq#real_time_messaging_api
@@ -80,10 +82,7 @@ Plugin.create(:mikutter_slack) do
 
   def get_icon(events, id)
     events.users_list['members'].each { |u|
-      p u
       if u['id'] == id
-        puts 'It\'s me!!!'
-        p u.dig('profile', 'image_48')
         return u.dig('profile', 'image_48')
       end
     }
@@ -103,6 +102,7 @@ Plugin.create(:mikutter_slack) do
   # }
   RTM.on :hello do
     puts 'Successfully connected.'
+    auth_test
     # p get_users_list(EVENTS)
     # p get_channel_list(EVENTS)
   end
@@ -153,7 +153,7 @@ Plugin.create(:mikutter_slack) do
     end
 
     settings '開発' do
-      input 'トークン', :slack_token
+      input 'トークン', :mikutter_slack_token
     end
 
   end
