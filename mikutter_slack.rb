@@ -117,6 +117,7 @@ Plugin.create(:mikutter_slack) do
 
 
   # 実績
+  # http://mikutter.blogspot.jp/2013/03/blog-post.html
   defachievement(:mikutter_slack_achieve,
                  description: '設定画面からSlackのトークンを設定しよう',
                  hint: "Slackのトークンを取得して設定しよう！\nhttps://api.slack.com/docs/oauth-test-tokens"
@@ -127,6 +128,7 @@ Plugin.create(:mikutter_slack) do
 
 
   # mikutter設定画面
+  # http://mikutter.blogspot.jp/2012/12/blog-post.html
   settings('Slack') do
     settings('Slack アカウント') do
       input 'メールアドレス', :mikutter_slack_email
