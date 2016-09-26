@@ -118,6 +118,7 @@ Plugin.create(:mikutter_slack) do
     RTM.start
   end
 
+  defactivity 'slack_connection', 'Slack接続情報'
 
   # 実績
   # http://mikutter.blogspot.jp/2013/03/blog-post.html
@@ -143,11 +144,11 @@ Plugin.create(:mikutter_slack) do
     end end
 
   on_slack_connected do |auth|
-    timeline(:home_timeline) << Mikutter::System::Message.new(description: "Slackチーム #{auth['team']} の認証に成功しました！\n")
+    activity :slack_connection, "Slackチーム #{auth['team']} の認証に成功しました！"
   end
 
   on_slack_connection_failed do |auth|
-    timeline(:home_timeline) << Mikutter::System::Message.new(description: "Slackチーム #{auth['team']} の認証に失敗しました！\n")
+    activity :slack_connection, "Slackチーム #{auth['team']} の認証に失敗しました！"
   end
 
 end
