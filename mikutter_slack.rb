@@ -38,23 +38,32 @@ Plugin.create(:mikutter_slack) do
   EVENTS = Slack::Client.new
 
 
-  # Get users list
+  # ユーザーリストを取得
   def get_users_list(events)
     users = Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
     return users end
 
 
-  # Get channels list
+  # チャンネルリストを取得
   def get_channel_list(events)
     channels = events.channels_list['channels']
     return channels end
 
 
-  # Get channel history
-  def get_channel_history(channel)
+  # 全てのチャンネルのヒストリを取得
+  def get_all_channel_history(channel)
     users = get_users_list(client)
-    # TODO: テスト用のコードのため要修正
-    if channel['name'] == 'mikutter'
+    messages = client.channels_history(channel: "#{channel['id']}")['messages']
+    messages.each do |message|
+      username = users[message['user']]
+      print "@#{username} "
+      puts message['text']
+    end end
+
+
+  # 指定したチャンネル名のチャンネルのヒストリを取得
+  def get_channel_history(channel, name)
+    if channel['name'] == name
       messages = client.channels_history(channel: "#{channel['id']}")['messages']
       messages.each do |message|
         username = users[message['user']]
@@ -91,12 +100,16 @@ Plugin.create(:mikutter_slack) do
     users = get_users_list(EVENTS)
 
     # TODO: モデルでこの部分を調整する
+    # user = Mikutter::Slack::User.new(idname: "#{users[data['user']]}",
+    #                                  name: "#{users[data['user']]}",
+    #                                  profile_image_url: get_icon(EVENTS, data['user']))
     user = Mikutter::System::User.new(idname: "#{users[data['user']]}",
                                       name: "#{users[data['user']]}",
                                       profile_image_url: get_icon(EVENTS, data['user']))
     timeline(:home_timeline) << Mikutter::System::Message.new(user: user,
                                                               description: "#{data['text']}")
   end
+
 
   Thread.new do
     RTM.start
@@ -111,7 +124,9 @@ Plugin.create(:mikutter_slack) do
     end
 
     settings '開発' do
-      input 'トークン', :mikutter_slack_token
+      input('トークン', :mikutter_slack_token).
+          tooltip("下記URLよりトークン取得\n" +
+                      'https://api.slack.com/docs/oauth-test-tokens')
     end end
 
 end
