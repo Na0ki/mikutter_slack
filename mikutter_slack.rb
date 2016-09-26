@@ -116,17 +116,25 @@ Plugin.create(:mikutter_slack) do
   end
 
 
+  # 実績
+  defachievement(:mikutter_slack_achieve,
+                 description: '設定画面からSlackのトークンを設定しよう',
+                 hint: "Slackのトークンを取得して設定しよう！\nhttps://api.slack.com/docs/oauth-test-tokens"
+  ) do |achievement|
+    token = UserConfig['mikutter_slack_token']
+    unless token.empty? || token.nil?
+      achievement.take! end end
+
+
   # mikutter設定画面
-  settings 'Slack' do
-    settings 'Slack アカウント' do
+  settings('Slack') do
+    settings('Slack アカウント') do
       input 'メールアドレス', :mikutter_slack_email
       inputpass 'パスワード', :mikutter_slack_password
     end
 
-    settings '開発' do
-      input('トークン', :mikutter_slack_token).
-          tooltip("下記URLよりトークン取得\n" +
-                      'https://api.slack.com/docs/oauth-test-tokens')
+    settings('開発') do
+      input('トークン', :mikutter_slack_token)
     end end
 
 end
