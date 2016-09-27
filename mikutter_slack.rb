@@ -143,10 +143,14 @@ Plugin.create(:mikutter_slack) do
       input('トークン', :mikutter_slack_token)
     end end
 
+
+  # 接続時
   on_slack_connected do |auth|
     activity :slack_connection, "Slackチーム #{auth['team']} の認証に成功しました！"
   end
 
+
+  # 接続失敗時
   on_slack_connection_failed do |auth|
     activity :slack_connection, "Slackチーム #{auth['team']} の認証に失敗しました！"
   end
