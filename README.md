@@ -11,5 +11,5 @@ Slack on mikutter
 1. mikutterを再起動すれば認証がされます。
 
 
-# 開発に関する覚書
-1. [MEMO.md](/MEMO.md)
+# 開発に関するWiki
+1. [mikutter_slack Wiki](https://github.com/Na0ki/mikutter_slack/wiki)
