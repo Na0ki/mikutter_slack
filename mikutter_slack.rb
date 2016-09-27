@@ -28,8 +28,11 @@ Plugin.create(:mikutter_slack) do
   # 認証テスト
   def auth_test
     auth = Slack.auth_test
-    result = auth['ok'] ? '成功' : '失敗'
-    timeline(:home_timeline) << Mikutter::System::Message.new(description: "Slackチーム #{auth['team']} の認証に#{result}しました！\n")
+    if auth['ok']
+      Plugin.call(:slack_connected, auth)
+    else
+      Plugin.call(:slack_connection_failed, auth)
+    end
   end
 
 
@@ -115,6 +118,7 @@ Plugin.create(:mikutter_slack) do
     RTM.start
   end
 
+  defactivity 'slack_connection', 'Slack接続情報'
 
   # 実績
   # http://mikutter.blogspot.jp/2013/03/blog-post.html
@@ -138,5 +142,13 @@ Plugin.create(:mikutter_slack) do
     settings('開発') do
       input('トークン', :mikutter_slack_token)
     end end
+
+  on_slack_connected do |auth|
+    activity :slack_connection, "Slackチーム #{auth['team']} の認証に成功しました！"
+  end
+
+  on_slack_connection_failed do |auth|
+    activity :slack_connection, "Slackチーム #{auth['team']} の認証に失敗しました！"
+  end
 
 end

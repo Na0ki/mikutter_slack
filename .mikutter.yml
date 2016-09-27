@@ -2,7 +2,8 @@
 slug: :mikutter_slack
 depends:
   mikutter: 3.5.0-develop
-  plugin: []
+  plugin:
+    - activity
 version: '0.0.1'
 author: ahiru
 name: mikutter_slack
