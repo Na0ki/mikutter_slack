@@ -5,6 +5,8 @@ require_relative 'slack_api'
 
 Plugin.create(:mikutter_slack) do
 
+
+  # 抽出データソース
   filter_extract_datasources do |ds|
     [ds.merge(mikutter_slack: 'slack')]
   end
@@ -49,13 +51,14 @@ Plugin.create(:mikutter_slack) do
 
 
   Thread.new do
+    # RTMに接続開始
     RTM.start
   end
 
   defactivity 'slack_connection', 'Slack接続情報'
 
-  # 実績
-  # http://mikutter.blogspot.jp/2013/03/blog-post.html
+  # 実績設定
+  # @see http://mikutter.blogspot.jp/2013/03/blog-post.html
   defachievement(:mikutter_slack_achieve,
                  description: '設定画面からSlackのトークンを設定しよう',
                  hint: "Slackのトークンを取得して設定しよう！\nhttps://api.slack.com/docs/oauth-test-tokens"
@@ -66,7 +69,7 @@ Plugin.create(:mikutter_slack) do
 
 
   # mikutter設定画面
-  # http://mikutter.blogspot.jp/2012/12/blog-post.html
+  # @see http://mikutter.blogspot.jp/2012/12/blog-post.html
   settings('Slack') do
     settings('Slack アカウント') do
       input 'メールアドレス', :mikutter_slack_email
