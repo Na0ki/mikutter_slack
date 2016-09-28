@@ -7,6 +7,7 @@ Plugin.create(:mikutter_slack) do
 
 
   # 抽出データソース
+  # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|
     [ds.merge(mikutter_slack: 'slack')]
   end
