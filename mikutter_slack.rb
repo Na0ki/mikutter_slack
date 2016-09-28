@@ -5,25 +5,8 @@ require_relative 'retriever'
 Plugin.create(:mikutter_slack) do
 
   filter_extract_datasources do |ds|
-    [ds.merge(mikutter_slack: 'Slack')]
+    [ds.merge(mikutter_slack: 'slack')]
   end
-
-
-  DEFINED_TIME = Time.new.freeze
-
-  # トークンを設定
-  token = UserConfig['mikutter_slack_token']
-  unless token.empty? || token == nil?
-    Slack.configure do |config|
-      config.token = token
-    end
-  end
-
-
-  def initialize
-
-  end
-
 
   # 認証テスト
   def auth_test
@@ -33,29 +16,29 @@ Plugin.create(:mikutter_slack) do
     else
       Plugin.call(:slack_connection_failed, auth)
     end
-  end
-
-
-  # RTM 及び Events API のインスタンス
-  RTM = Slack.realtime
-  EVENTS = Slack::Client.new
+    return auth['ok'] end
 
 
   # ユーザーリストを取得
-  def get_users_list(events)
+  # @param [Slack::Client] events APIのインスタンス(EVENTS)
+  # @return [Array] ユーザーリスト
+  def users(events)
     users = Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
     return users end
 
 
-  # チャンネルリストを取得
-  def get_channel_list(events)
+  # チャンネルリスト取得変えす
+  # @param [Slack::Client] events APIのインスタンス(EVENTS)
+  # @return [Array] channels チャンネル一覧
+  def channels(events)
     channels = events.channels_list['channels']
     return channels end
 
 
   # 全てのチャンネルのヒストリを取得
-  def get_all_channel_history(channel)
-    users = get_users_list(client)
+  def all_channel_history
+    channel = channels(EVENTS)
+    users = users(EVENTS)
     messages = client.channels_history(channel: "#{channel['id']}")['messages']
     messages.each do |message|
       username = users[message['user']]
@@ -65,20 +48,23 @@ Plugin.create(:mikutter_slack) do
 
 
   # 指定したチャンネル名のチャンネルのヒストリを取得
-  def get_channel_history(channel, name)
+  def channel_history(events ,channel, name)
     if channel['name'] == name
-      messages = client.channels_history(channel: "#{channel['id']}")['messages']
+      users = users(events)
+      messages = events.channels_history(channel: "#{channel['id']}")['messages']
       messages.each do |message|
         username = users[message['user']]
         print "@#{username} "
         puts message['text']
       end
+      Plugin.call(:appear, messages)
+      Plugin.call(:extract_receive_message, :mikutter_slack, messages)
     end end
 
 
   # Emojiリストの取得
-  def get_emoji_list
-    return EVENTS.emoji_list
+  def emoji_list(events)
+    return events.emoji_list
   end
 
 
@@ -92,15 +78,30 @@ Plugin.create(:mikutter_slack) do
     return Skin.get('icon.png') end
 
 
+  # トークンを設定
+  token = UserConfig['mikutter_slack_token']
+  unless token.empty? || token == nil?
+    Slack.configure do |config|
+      config.token = token
+    end end
+
+
+  # RTM 及び Events API のインスタンス
+  RTM = Slack.realtime
+  EVENTS = Slack::Client.new
+
+
   # 接続時に呼ばれる
   RTM.on :hello do
     puts 'Successfully connected.'
-    auth_test end
+    auth_test
+    # channel_history(EVENTS, channels(EVENTS), 'mikutter')
+  end
 
 
   # メッセージ書き込み時に呼ばれる
   RTM.on :message do |data|
-    users = get_users_list(EVENTS)
+    users = users(EVENTS)
 
     # TODO: モデルでこの部分を調整する
     # user = Mikutter::Slack::User.new(idname: "#{users[data['user']]}",
