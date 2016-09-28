@@ -9,7 +9,7 @@ Plugin.create(:mikutter_slack) do
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|
-    [ds.merge(mikutter_slack: 'slack')]
+    [{mikutter_slack: 'slack'}.merge(ds)]
   end
 
 
@@ -48,6 +48,10 @@ Plugin.create(:mikutter_slack) do
                                       profile_image_url: Plugin::Slack::SlackAPI.get_icon(EVENTS, data['user']))
     timeline(:home_timeline) << Mikutter::System::Message.new(user: user,
                                                               description: "#{data['text']}")
+    messages = %W(#{Mikutter::System::Message.new(user: user,
+                                                  description: "#{data['text']}")})
+    Plugin.call(:appear, messages)
+    Plugin.call :extract_receive_message, :mikutter_slack, messages
   end
 
 
