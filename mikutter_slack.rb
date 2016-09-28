@@ -1,81 +1,13 @@
 # -*- coding: utf-8 -*-
 require 'slack'
 require_relative 'retriever'
+require_relative 'slack_api'
 
 Plugin.create(:mikutter_slack) do
 
   filter_extract_datasources do |ds|
     [ds.merge(mikutter_slack: 'slack')]
   end
-
-  # 認証テスト
-  def auth_test
-    auth = Slack.auth_test
-    if auth['ok']
-      Plugin.call(:slack_connected, auth)
-    else
-      Plugin.call(:slack_connection_failed, auth)
-    end
-    return auth['ok'] end
-
-
-  # ユーザーリストを取得
-  # @param [Slack::Client] events APIのインスタンス(EVENTS)
-  # @return [Array] ユーザーリスト
-  def users(events)
-    users = Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
-    return users end
-
-
-  # チャンネルリスト取得変えす
-  # @param [Slack::Client] events APIのインスタンス(EVENTS)
-  # @return [Array] channels チャンネル一覧
-  def channels(events)
-    channels = events.channels_list['channels']
-    return channels end
-
-
-  # 全てのチャンネルのヒストリを取得
-  def all_channel_history
-    channel = channels(EVENTS)
-    users = users(EVENTS)
-    messages = client.channels_history(channel: "#{channel['id']}")['messages']
-    messages.each do |message|
-      username = users[message['user']]
-      print "@#{username} "
-      puts message['text']
-    end end
-
-
-  # 指定したチャンネル名のチャンネルのヒストリを取得
-  def channel_history(events ,channel, name)
-    if channel['name'] == name
-      users = users(events)
-      messages = events.channels_history(channel: "#{channel['id']}")['messages']
-      messages.each do |message|
-        username = users[message['user']]
-        print "@#{username} "
-        puts message['text']
-      end
-      Plugin.call(:appear, messages)
-      Plugin.call(:extract_receive_message, :mikutter_slack, messages)
-    end end
-
-
-  # Emojiリストの取得
-  def emoji_list(events)
-    return events.emoji_list
-  end
-
-
-  # ユーザのアイコンを取得
-  def get_icon(events, id)
-    events.users_list['members'].each { |u|
-      if u['id'] == id
-        return u.dig('profile', 'image_48')
-      end
-    }
-    return Skin.get('icon.png') end
 
 
   # トークンを設定
@@ -94,14 +26,15 @@ Plugin.create(:mikutter_slack) do
   # 接続時に呼ばれる
   RTM.on :hello do
     puts 'Successfully connected.'
-    auth_test
+
+    Slack_API.auth_test
     # channel_history(EVENTS, channels(EVENTS), 'mikutter')
   end
 
 
   # メッセージ書き込み時に呼ばれる
   RTM.on :message do |data|
-    users = users(EVENTS)
+    users = Slack_API.users(EVENTS)
 
     # TODO: モデルでこの部分を調整する
     # user = Mikutter::Slack::User.new(idname: "#{users[data['user']]}",
@@ -109,7 +42,7 @@ Plugin.create(:mikutter_slack) do
     #                                  profile_image_url: get_icon(EVENTS, data['user']))
     user = Mikutter::System::User.new(idname: "#{users[data['user']]}",
                                       name: "#{users[data['user']]}",
-                                      profile_image_url: get_icon(EVENTS, data['user']))
+                                      profile_image_url: Slack_API.get_icon(EVENTS, data['user']))
     timeline(:home_timeline) << Mikutter::System::Message.new(user: user,
                                                               description: "#{data['text']}")
   end
