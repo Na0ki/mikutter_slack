@@ -29,14 +29,14 @@ Plugin.create(:mikutter_slack) do
   RTM.on :hello do
     puts 'Successfully connected.'
 
-    Slack_API.auth_test
+    Plugin::Slack::SlackAPI.auth_test
     # channel_history(EVENTS, channels(EVENTS), 'mikutter')
   end
 
 
   # メッセージ書き込み時に呼ばれる
   RTM.on :message do |data|
-    users = Slack_API.users(EVENTS)
+    users = Plugin::Slack::SlackAPI.users(EVENTS)
 
     # TODO: モデルでこの部分を調整する
     # user = Mikutter::Slack::User.new(idname: "#{users[data['user']]}",
@@ -44,7 +44,7 @@ Plugin.create(:mikutter_slack) do
     #                                  profile_image_url: get_icon(EVENTS, data['user']))
     user = Mikutter::System::User.new(idname: "#{users[data['user']]}",
                                       name: "#{users[data['user']]}",
-                                      profile_image_url: Slack_API.get_icon(EVENTS, data['user']))
+                                      profile_image_url: Plugin::Slack::SlackAPI.get_icon(EVENTS, data['user']))
     timeline(:home_timeline) << Mikutter::System::Message.new(user: user,
                                                               description: "#{data['text']}")
   end
