@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'slack'
 
-class Slack_API
+class SlackAPI
   class << self
     # 認証テスト
     # @return [boolean] 認証成功の可否
