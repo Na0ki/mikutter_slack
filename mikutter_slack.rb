@@ -5,6 +5,8 @@ require_relative 'slack_api'
 
 Plugin.create(:mikutter_slack) do
 
+  def print_log(text)
+    puts("[mikutter_slack]:\t#{text}") end
 
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
@@ -28,37 +30,47 @@ Plugin.create(:mikutter_slack) do
 
   # 接続時に呼ばれる
   RTM.on :hello do
-    puts 'Successfully connected.'
+    print_log 'Successfully connected.'
 
-    puts "Slack Auth Test Result: #{Plugin::Slack::SlackAPI.auth_test}"
+    print_log "Slack Auth Test Result: #{Plugin::Slack::SlackAPI.auth_test}"
   end
 
 
   # メッセージ書き込み時に呼ばれる
   RTM.on :message do |data|
-    users = Plugin::Slack::SlackAPI.users(EVENTS)
+    print_log data
 
-    # TODO: モデルでこの部分を調整する
-    user = Plugin::Slack::User.new(idname: "#{users[data['user']]}",
-                                   name: "#{users[data['user']]}",
-                                   profile_image_url: Plugin::Slack::SlackAPI.get_icon(EVENTS, data['user']))
-    message = Plugin::Slack::Message.new(channel: 'test',
-                                         user: user,
-                                         text: "#{data['text']}",
-                                         created: data['ts'],
-                                         team: 'test')
-    p message
+    Thread.new {
+      Plugin::Slack::SlackAPI.users(EVENTS)
+    }.next { |users|
+      Plugin::Slack::User.new(idname: "#{users[data['user']]}",
+                              name: "#{users[data['user']]}",
+                              profile_image_url: Plugin::Slack::SlackAPI.get_icon(EVENTS, data['user']))
+    }.next { |user|
+      Plugin::Slack::Message.new(channel: 'test',
+                                 user: user,
+                                 text: "#{data['text']}",
+                                 created: Time.at(Float(data['ts']).to_i),
+                                 team: 'test')
+    }.next { |message|
+      print_log message
 
-    messages = %W(#{message})
-    Plugin.call(:appear, messages)
-    Plugin.call :extract_receive_message, :mikutter_slack, messages
+      messages = %W(#{message})
+      Plugin.call(:appear, messages)
+      Plugin.call(:extract_receive_message, :mikutter_slack, messages)
+    }.trap { |err|
+      error err
+    }
+
   end
 
 
-  Thread.new do
+  Thread.new {
     # RTMに接続開始
     RTM.start
-  end
+  }.trap { |err|
+    error err
+  }
 
   defactivity 'slack_connection', 'Slack接続情報'
 

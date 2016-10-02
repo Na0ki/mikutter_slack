@@ -20,14 +20,13 @@ module Plugin::Slack
     entity_class Retriever::Entity::URLEntity
 
     def to_show
-      @to_show ||= text
+      @to_show ||= self[:text]
     end
 
     def user
       user
     end
   end
-
 
 
   # Userクラス
@@ -41,7 +40,7 @@ module Plugin::Slack
     field.string :profile_image_url
 
     def idname
-      user
+      nil
     end
   end
 
