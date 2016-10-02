@@ -22,10 +22,6 @@ module Plugin::Slack
     def to_show
       @to_show ||= self[:text]
     end
-
-    def user
-      user
-    end
   end
 
 
@@ -39,9 +35,6 @@ module Plugin::Slack
     field.string :name, required: true
     field.string :profile_image_url
 
-    def idname
-      nil
-    end
   end
 
 end

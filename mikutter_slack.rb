@@ -5,9 +5,6 @@ require_relative 'slack_api'
 
 Plugin.create(:mikutter_slack) do
 
-  def print_log(text)
-    puts("[mikutter_slack]:\t#{text}") end
-
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|
@@ -30,15 +27,13 @@ Plugin.create(:mikutter_slack) do
 
   # 接続時に呼ばれる
   RTM.on :hello do
-    print_log 'Successfully connected.'
-
-    print_log "Slack Auth Test Result: #{Plugin::Slack::SlackAPI.auth_test}"
+    puts 'Successfully connected.'
+    puts "Slack Auth Test Result: #{Plugin::Slack::SlackAPI.auth_test}"
   end
 
 
   # メッセージ書き込み時に呼ばれる
   RTM.on :message do |data|
-    print_log data
 
     Thread.new {
       Plugin::Slack::SlackAPI.users(EVENTS)
@@ -53,11 +48,7 @@ Plugin.create(:mikutter_slack) do
                                  created: Time.at(Float(data['ts']).to_i),
                                  team: 'test')
     }.next { |message|
-      print_log message
-
-      messages = %W(#{message})
-      Plugin.call(:appear, messages)
-      Plugin.call(:extract_receive_message, :mikutter_slack, messages)
+      Plugin.call(:extract_receive_message, :mikutter_slack, [message])
     }.trap { |err|
       error err
     }
