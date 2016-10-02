@@ -24,7 +24,7 @@ module Plugin::Slack
 
 
       # チャンネルリスト返す
-      # @param [Slack::Client] events EVENTS APIのインスタンス(EVENTS)
+      # @param [Slack::Client] events EVENTS APIのインスタンス
       # @return [Array] channels チャンネル一覧
       def channels(events)
         events.channels_list['channels'] end
@@ -65,7 +65,7 @@ module Plugin::Slack
 
 
       # ユーザのアイコンを取得
-      # @param [Slack::Client] events APIのインスタンス
+      # @param [Slack::Client] events EVENTS APIのインスタンス
       # @param [String] id ユーザーID
       # @return FIXME: 確認する（どういう形か忘れた）
       def get_icon(events, id)

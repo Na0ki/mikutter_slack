@@ -30,8 +30,7 @@ Plugin.create(:mikutter_slack) do
   RTM.on :hello do
     puts 'Successfully connected.'
 
-    Plugin::Slack::SlackAPI.auth_test
-    # channel_history(EVENTS, channels(EVENTS), 'mikutter')
+    puts "Slack Auth Test Result: #{Plugin::Slack::SlackAPI.auth_test}"
   end
 
 
@@ -40,16 +39,17 @@ Plugin.create(:mikutter_slack) do
     users = Plugin::Slack::SlackAPI.users(EVENTS)
 
     # TODO: モデルでこの部分を調整する
-    # user = Mikutter::Slack::User.new(idname: "#{users[data['user']]}",
-    #                                  name: "#{users[data['user']]}",
-    #                                  profile_image_url: get_icon(EVENTS, data['user']))
-    user = Mikutter::System::User.new(idname: "#{users[data['user']]}",
-                                      name: "#{users[data['user']]}",
-                                      profile_image_url: Plugin::Slack::SlackAPI.get_icon(EVENTS, data['user']))
-    timeline(:home_timeline) << Mikutter::System::Message.new(user: user,
-                                                              description: "#{data['text']}")
-    messages = %W(#{Mikutter::System::Message.new(user: user,
-                                                  description: "#{data['text']}")})
+    user = Plugin::Slack::User.new(idname: "#{users[data['user']]}",
+                                   name: "#{users[data['user']]}",
+                                   profile_image_url: Plugin::Slack::SlackAPI.get_icon(EVENTS, data['user']))
+    message = Plugin::Slack::Message.new(channel: 'test',
+                                         user: user,
+                                         text: "#{data['text']}",
+                                         created: data['ts'],
+                                         team: 'test')
+    p message
+
+    messages = %W(#{message})
     Plugin.call(:appear, messages)
     Plugin.call :extract_receive_message, :mikutter_slack, messages
   end
