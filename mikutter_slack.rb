@@ -27,7 +27,29 @@ Plugin.create(:mikutter_slack) do
   # 接続時に呼ばれる
   RTM.on :hello do
     puts 'Successfully connected.'
-    puts "Slack Auth Test Result: #{Plugin::Slack::SlackAPI.auth_test}"
+    auth_result = Plugin::Slack::SlackAPI.auth_test
+    puts "Slack Auth Test Result: #{auth_result ? '成功' : '失敗'}"
+    if auth_result
+      Thread.new {
+        Plugin::Slack::SlackAPI.channels(EVENTS)
+      }.next { |channels|
+        Plugin::Slack::SlackAPI.channel_history(EVENTS, channels, 'mikutter')
+      }.next { |histories|
+        puts histories
+        # histories.each do |history|
+        #   puts "history: #{history}"
+          # Plugin::Slack::User.new(idname: "#{history[]}")
+          # users = users(events)
+          # messages.each do |message|
+          #   username = users[message['user']]
+          #   print "@#{username} "
+          #   puts message['text']
+          # end
+        # end
+      }.trap { |err|
+        error err
+      }
+    end
   end
 
 

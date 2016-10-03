@@ -31,29 +31,23 @@ module Plugin::Slack
 
 
       # 全てのチャンネルのヒストリを取得
-      # FIXME: messageオブジェクトを返したほうがいい？
-      def all_channel_history
-        channel = channels(EVENTS)
-        users = users(EVENTS)
-        messages = client.channels_history(channel: "#{channel['id']}")['messages']
-        messages.each do |message|
-          username = users[message['user']]
-          print "@#{username} "
-          puts message['text']
-        end end
+      # @param [Slack::Client] events EVENTS APIのインスタンス
+      # @return [Array] 全チャンネルのヒストリリスト
+      def all_channel_history(events)
+        channel = channels(events)
+        events.channels_history(channel: "#{channel['id']}")['messages'] end
 
 
       # 指定したチャンネル名のチャンネルのヒストリを取得
-      # FIXME: messageオブジェクトを返したほうがいい？
-      def channel_history(events ,channel, name)
+      # @param [Slack::Client] events EVENTS APIのインスタンス
+      # @param [hash] channel
+      # @param [String] name チャンネル名
+      # @return [Array] channels_history チャンネルのヒストリリスト
+      def channel_history(events, channel, name)
         if channel['name'] == name
-          users = users(events)
-          messages = events.channels_history(channel: "#{channel['id']}")['messages']
-          messages.each do |message|
-            username = users[message['user']]
-            print "@#{username} "
-            puts message['text']
-          end
+          channel_m = events.channels_history(channel: "#{channel['id']}")['messages']
+          puts channel_m
+          return channel_m
         end end
 
 
