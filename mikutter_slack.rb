@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'slack'
-require_relative 'retriever'
-require_relative 'slack_api'
+require_relative 'model'
 
 Plugin.create(:mikutter_slack) do
 
