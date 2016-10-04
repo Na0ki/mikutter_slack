@@ -30,25 +30,28 @@ Plugin.create(:mikutter_slack) do
     auth_result = Plugin::Slack::SlackAPI.auth_test
     puts "Slack Auth Test Result: #{auth_result ? '成功' : '失敗'}"
     if auth_result
-      Thread.new {
-        Plugin::Slack::SlackAPI.channels(EVENTS)
-      }.next { |channels|
-        Plugin::Slack::SlackAPI.channel_history(EVENTS, channels, 'mikutter')
-      }.next { |histories|
-        puts histories
-        # histories.each do |history|
-        #   puts "history: #{history}"
-          # Plugin::Slack::User.new(idname: "#{history[]}")
-          # users = users(events)
-          # messages.each do |message|
-          #   username = users[message['user']]
-          #   print "@#{username} "
-          #   puts message['text']
-          # end
-        # end
-      }.trap { |err|
-        error err
-      }
+      histories = Plugin::Slack::SlackAPI.channel_history(EVENTS, Plugin::Slack::SlackAPI.channels(EVENTS), 'mikutter')
+      histories['messages'].each do |history|
+        Thread.new {
+          Plugin::Slack::SlackAPI.users(EVENTS)
+        }.next { |users|
+          [Plugin::Slack::SlackAPI.get_icon(EVENTS, history['user']), users]
+        }.next { |icon, users|
+          Plugin::Slack::User.new(idname: "#{users[history['user']]}",
+                                  name: "#{users[history['user']]}",
+                                  profile_image_url: icon)
+        }.next { |user|
+          Plugin::Slack::Message.new(channel: 'mikutter',
+                                     user: user,
+                                     text: "#{history['text']}",
+                                     created: Time.at(Float(history['ts']).to_i),
+                                     team: 'ahiru3net')
+        }.next{ |message|
+          Plugin.call :extract_receive_message, :mikutter_slack, [message]
+        }.trap { |err|
+          error err
+        }
+      end
     end
   end
 
