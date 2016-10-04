@@ -40,14 +40,14 @@ module Plugin::Slack
 
       # 指定したチャンネル名のチャンネルのヒストリを取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @param [hash] channel
+      # @param [hash] channels
       # @param [String] name チャンネル名
       # @return [Array] channels_history チャンネルのヒストリリスト
-      def channel_history(events, channel, name)
-        if channel['name'] == name
-          channel_m = events.channels_history(channel: "#{channel['id']}")['messages']
-          puts channel_m
-          return channel_m
+      def channel_history(events, channels, name)
+        channels.each do |channel|
+          if channel['name'] == name
+            return events.channels_history(channel: "#{channel['id']}")
+          end
         end end
 
 
@@ -61,7 +61,7 @@ module Plugin::Slack
       # ユーザのアイコンを取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
       # @param [String] id ユーザーID
-      # @return FIXME: 確認する（どういう形か忘れた）
+      # @return [String] アイコンのURL
       def get_icon(events, id)
         events.users_list['members'].each { |u|
           return u.dig('profile', 'image_48') if u['id'] == id
