@@ -4,6 +4,8 @@ require_relative 'model'
 
 Plugin.create(:mikutter_slack) do
 
+  @defined_time = Time.new.freeze
+
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|
@@ -57,26 +59,36 @@ Plugin.create(:mikutter_slack) do
 
 
   # メッセージ書き込み時に呼ばれる
+  # @param [Hash] data メッセージ
+  # Thread に関しては以下を参考
+  # @see https://github.com/toshia/delayer-deferred
   RTM.on :message do |data|
+    # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
+    # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
+    next unless @defined_time < Time.at(Float(data['ts']).to_i)
 
+    # メッセージの処理
     Thread.new {
+      # ユーザー一覧取得
       Plugin::Slack::SlackAPI.users(EVENTS)
     }.next { |users|
+      # User オブジェクト作成
       Plugin::Slack::User.new(idname: "#{users[data['user']]}",
                               name: "#{users[data['user']]}",
                               profile_image_url: Plugin::Slack::SlackAPI.get_icon(EVENTS, data['user']))
     }.next { |user|
+      # Message オブジェクト作成
       Plugin::Slack::Message.new(channel: 'test',
                                  user: user,
                                  text: "#{data['text']}",
                                  created: Time.at(Float(data['ts']).to_i),
                                  team: 'test')
     }.next { |message|
+      # データソースにメッセージを投稿
       Plugin.call(:extract_receive_message, :mikutter_slack, [message])
     }.trap { |err|
       error err
     }
-
   end
 
 
