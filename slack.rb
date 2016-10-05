@@ -4,6 +4,8 @@ require_relative 'model'
 
 Plugin.create(:slack) do
 
+  @defined_time = Time.new.freeze
+
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|
@@ -63,7 +65,7 @@ Plugin.create(:slack) do
   RTM.on :message do |data|
     # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
     # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
-    next unless Plugin.defined_time < Time.at(Float(data['ts']).to_i)
+    next unless @defined_time < Time.at(Float(data['ts']).to_i)
 
     # メッセージの処理
     Thread.new {
