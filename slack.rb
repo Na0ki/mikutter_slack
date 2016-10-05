@@ -2,19 +2,17 @@
 require 'slack'
 require_relative 'model'
 
-Plugin.create(:mikutter_slack) do
-
-  @defined_time = Time.new.freeze
+Plugin.create(:slack) do
 
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|
-    [{mikutter_slack: 'slack'}.merge(ds)]
+    [{slack: 'slack'}.merge(ds)]
   end
 
 
   # トークンを設定
-  token = UserConfig['mikutter_slack_token']
+  token = UserConfig['slack_token']
   unless token.empty? || token == nil?
     Slack.configure do |config|
       config.token = token
@@ -49,7 +47,7 @@ Plugin.create(:mikutter_slack) do
                                      created: Time.at(Float(history['ts']).to_i),
                                      team: 'ahiru3net')
         }.next{ |message|
-          Plugin.call :extract_receive_message, :mikutter_slack, [message]
+          Plugin.call :extract_receive_message, :slack, [message]
         }.trap { |err|
           error err
         }
@@ -65,7 +63,7 @@ Plugin.create(:mikutter_slack) do
   RTM.on :message do |data|
     # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
     # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
-    next unless @defined_time < Time.at(Float(data['ts']).to_i)
+    next unless Plugin.defined_time < Time.at(Float(data['ts']).to_i)
 
     # メッセージの処理
     Thread.new {
@@ -85,7 +83,7 @@ Plugin.create(:mikutter_slack) do
                                  team: 'test')
     }.next { |message|
       # データソースにメッセージを投稿
-      Plugin.call(:extract_receive_message, :mikutter_slack, [message])
+      Plugin.call(:extract_receive_message, :slack, [message])
     }.trap { |err|
       error err
     }
@@ -103,7 +101,7 @@ Plugin.create(:mikutter_slack) do
 
   # 実績設定
   # @see http://mikutter.blogspot.jp/2013/03/blog-post.html
-  defachievement(:mikutter_slack_achieve,
+  defachievement(:slack_achieve,
                  description: '設定画面からSlackのトークンを設定しよう',
                  hint: "Slackのトークンを取得して設定しよう！\nhttps://api.slack.com/docs/oauth-test-tokens"
   ) do |achievement|
@@ -117,12 +115,12 @@ Plugin.create(:mikutter_slack) do
   # @see http://mikutter.blogspot.jp/2012/12/blog-post.html
   settings('Slack') do
     settings('Slack アカウント') do
-      input 'メールアドレス', :mikutter_slack_email
-      inputpass 'パスワード', :mikutter_slack_password
+      input 'メールアドレス', :slack_email
+      inputpass 'パスワード', :slack_password
     end
 
     settings('開発') do
-      input('トークン', :mikutter_slack_token)
+      input('トークン', :slack_token)
     end end
 
 

@@ -1,10 +1,10 @@
 ---
-slug: :mikutter_slack
+slug: :slack
 depends:
   mikutter: 3.5.0-develop
   plugin:
     - activity
-version: '0.0.1'
+version: '0.0.2'
 author: ahiru
-name: mikutter_slack
-description: slack on mikutter
+name: slack
+description: slack for mikutter
