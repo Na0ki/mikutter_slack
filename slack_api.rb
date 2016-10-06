@@ -5,15 +5,16 @@ module Plugin::Slack
   class SlackAPI
     class << self
       # 認証テスト
-      # @return [boolean] 認証成功の可否
+      # @return [Delayer::Deferred::Deferredable] 認証成功の可否
       def auth_test
-        auth = Slack.auth_test
-        if auth['ok']
+        Thread.new {
+          Slack.auth_test
+        }.next { |result|
+          Delayer::Deferred.fail(result) unless result['ok']
           Plugin.call(:slack_connected, auth)
-        else
-          Plugin.call(:slack_connection_failed, auth)
-        end
-        auth['ok']
+        }.trap { |err|
+          Plugin.call(:slack_connection_failed, err)
+        }
       end
 
 
@@ -21,7 +22,7 @@ module Plugin::Slack
       # @param [Slack::Client] events EVENTS APIのインスタンス
       # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
       def users(events)
-        Thread.new{
+        Thread.new {
           events.users_list['members'].map { |m|
             Plugin::Slack::User.new(m.symbolize)
           }
@@ -56,7 +57,7 @@ module Plugin::Slack
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
       def channel_history(events, channels, name)
         Thread.new do
-          channel = channels.find{|c| c['name'] == name }
+          channel = channels.find { |c| c['name'] == name }
           events.channels_history(channel: "#{channel['id']}")['messages']
         end
       end
@@ -64,9 +65,11 @@ module Plugin::Slack
 
       # Emojiリストの取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @return [JSON] 絵文字リスト
+      # @return [Delayer::Deferred::Deferredable] 絵文字リスト
       def emoji_list(events)
-        events.emoji_list
+        Thread.new do
+          events.emoji_list
+        end
       end
     end
   end
