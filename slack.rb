@@ -40,13 +40,13 @@ Plugin.create(:slack) do
           Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
             [Plugin::Slack::SlackAPI.get_icon(EVENTS, history['user']), users]
           }.next { |icon, users|
-            Plugin::Slack::User.new(idname: "#{users[history['user']]}",
-                                    name: "#{users[history['user']]}",
+            Plugin::Slack::User.new(idname: users[history['user']],
+                                    name: users[history['user']],
                                     profile_image_url: icon)
           }.next { |user|
             Plugin::Slack::Message.new(channel: 'mikutter',
                                        user: user,
-                                       text: "#{history['text']}",
+                                       text: history['text'],
                                        created: Time.at(Float(history['ts']).to_i),
                                        team: 'ahiru3net')
           }.next { |message|
@@ -85,8 +85,8 @@ Plugin.create(:slack) do
     # メッセージの処理
     Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
       # User オブジェクト作成
-      Plugin::Slack::User.new(idname: "#{users[data['user']]}",
-                              name: "#{users[data['user']]}",
+      Plugin::Slack::User.new(idname: users[data['user']],
+                              name: users[data['user']],
                               profile_image_url: Plugin::Slack::SlackAPI.get_icon(EVENTS, data['user']))
     }.next { |user|
       # Message オブジェクト作成
