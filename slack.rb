@@ -62,12 +62,22 @@ Plugin.create(:slack) do
   # Thread に関しては以下を参考
   # @see https://github.com/toshia/delayer-deferred
   RTM.on :message do |data|
+
     # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
     # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
     # @defined_time は {https://github.com/toshia/pluggaloid/blob/master/lib/pluggaloid/plugin.rb#L96} で定義済み
     next unless @defined_time < Time.at(Float(data['ts']).to_i)
     # 投稿内容が空の場合はスキップ
     next if data['text'].empty?
+
+    # FIXME: ごちゃごちゃしてるのでいい感じにする
+    # URL判定
+    # pattern = %r{<(.+?)>}
+    # data['text'].scan(pattern) { |m|
+    #   puts '=============================='
+    #   puts m
+    #   puts '=============================='
+    # }
 
     # メッセージの処理
     Thread.new {

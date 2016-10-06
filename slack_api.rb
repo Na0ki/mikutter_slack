@@ -19,8 +19,8 @@ module Plugin::Slack
 
       # ユーザーリストを取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @return [Array] ユーザーリスト
-      def users(events)
+      # @return [Hash] ユーザーリスト
+      def users(events)Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
         Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
       end
 
@@ -35,18 +35,19 @@ module Plugin::Slack
 
       # 全てのチャンネルのヒストリを取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @return [Array] 全チャンネルのヒストリリスト
+      # @return [JSON] 全チャンネルのヒストリ
+      # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
       def all_channel_history(events)
-        channel = channels(events)
-        events.channels_history(channel: "#{channel['id']}")['messages']
+        events.channels_history(channel: "#{channels(events)['id']}")
       end
 
 
       # 指定したチャンネル名のチャンネルのヒストリを取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
       # @param [hash] channels
-      # @param [String] name チャンネル名
-      # @return [Array] channels_history チャンネルのヒストリリスト
+      # @param [String] name 取得したいチャンネル名
+      # @return [JSON] channels_history チャンネルのヒストリ
+      # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
       def channel_history(events, channels, name)
         channels.each do |channel|
           if channel['name'] == name
@@ -58,7 +59,7 @@ module Plugin::Slack
 
       # Emojiリストの取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @return Array 絵文字リスト
+      # @return [JSON] 絵文字リスト
       def emoji_list(events)
         events.emoji_list
       end
