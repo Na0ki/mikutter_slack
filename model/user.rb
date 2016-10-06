@@ -15,7 +15,7 @@ module Plugin::Slack
     end
 
     def profile_image_url
-      self['profile']['image_48']
+      self[:profile][:image_48]
     end
   end
 end
