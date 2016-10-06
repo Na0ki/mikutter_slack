@@ -13,21 +13,24 @@ module Plugin::Slack
         else
           Plugin.call(:slack_connection_failed, auth)
         end
-        auth['ok'] end
+        auth['ok']
+      end
 
 
       # ユーザーリストを取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
       # @return [Array] ユーザーリスト
       def users(events)
-        Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }] end
+        Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
+      end
 
 
       # チャンネルリスト返す
       # @param [Slack::Client] events EVENTS APIのインスタンス
       # @return [Array] channels チャンネル一覧
       def channels(events)
-        events.channels_list['channels'] end
+        events.channels_list['channels']
+      end
 
 
       # 全てのチャンネルのヒストリを取得
@@ -35,7 +38,8 @@ module Plugin::Slack
       # @return [Array] 全チャンネルのヒストリリスト
       def all_channel_history(events)
         channel = channels(events)
-        events.channels_history(channel: "#{channel['id']}")['messages'] end
+        events.channels_history(channel: "#{channel['id']}")['messages']
+      end
 
 
       # 指定したチャンネル名のチャンネルのヒストリを取得
@@ -48,14 +52,16 @@ module Plugin::Slack
           if channel['name'] == name
             return events.channels_history(channel: "#{channel['id']}")
           end
-        end end
+        end
+      end
 
 
       # Emojiリストの取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
       # @return Array 絵文字リスト
       def emoji_list(events)
-        events.emoji_list end
+        events.emoji_list
+      end
 
 
       # ユーザのアイコンを取得
@@ -66,7 +72,8 @@ module Plugin::Slack
         events.users_list['members'].each { |u|
           return u.dig('profile', 'image_48') if u['id'] == id
         }
-        Skin.get('icon.png') end
+        Skin.get('icon.png')
+      end
 
     end
   end

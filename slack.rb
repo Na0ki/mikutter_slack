@@ -18,7 +18,8 @@ Plugin.create(:slack) do
   unless token.empty? || token == nil?
     Slack.configure do |config|
       config.token = token
-    end end
+    end
+  end
 
 
   # RTM 及び Events API のインスタンス
@@ -48,7 +49,7 @@ Plugin.create(:slack) do
                                      text: "#{history['text']}",
                                      created: Time.at(Float(history['ts']).to_i),
                                      team: 'ahiru3net')
-        }.next{ |message|
+        }.next { |message|
           Plugin.call :extract_receive_message, :slack, [message]
         }.trap { |err|
           error err
@@ -123,7 +124,8 @@ Plugin.create(:slack) do
 
     settings('開発') do
       input('トークン', :slack_token)
-    end end
+    end
+  end
 
 
   # 接続時
