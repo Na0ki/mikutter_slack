@@ -67,6 +67,7 @@ Plugin.create(:slack) do
     # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
     # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
     next unless @defined_time < Time.at(Float(data['ts']).to_i)
+    # 投稿内容が空の場合はスキップ
     next if data['text'].empty?
 
     # メッセージの処理
