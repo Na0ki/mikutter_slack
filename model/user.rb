@@ -7,8 +7,15 @@ module Plugin::Slack
   class User < Retriever::Model
     include Retriever::Model::UserMixin
 
-    field.string :idname, required: true
+    field.string :id, required: true
     field.string :name, required: true
-    field.string :profile_image_url
+
+    def idname
+      name
+    end
+
+    def profile_image_url
+      self[:profile][:image_48]
+    end
   end
 end

@@ -31,27 +31,24 @@ Plugin.create(:slack) do
     auth_result = Plugin::Slack::SlackAPI.auth_test
     puts "Slack Auth Test Result: #{auth_result ? '成功' : '失敗'}"
     if auth_result
-      histories = Plugin::Slack::SlackAPI.channel_history(EVENTS, Plugin::Slack::SlackAPI.channels(EVENTS), 'mikutter')
-      histories['messages'].each do |history|
-        Thread.new {
-          Plugin::Slack::SlackAPI.users(EVENTS)
-        }.next { |users|
-          [Plugin::Slack::SlackAPI.get_icon(EVENTS, history['user']), users]
-        }.next { |icon, users|
-          Plugin::Slack::User.new(idname: "#{users[history['user']]}",
-                                  name: "#{users[history['user']]}",
-                                  profile_image_url: icon)
-        }.next { |user|
-          Plugin::Slack::Message.new(channel: 'mikutter',
-                                     user: user,
-                                     text: "#{history['text']}",
-                                     created: Time.at(Float(history['ts']).to_i),
-                                     team: 'ahiru3net')
-        }.next { |message|
-          Plugin.call :extract_receive_message, :slack, [message]
-        }.trap { |err|
-          error err
-        }
+      Plugin::Slack::SlackAPI.channel_history(
+        EVENTS,
+        Plugin::Slack::SlackAPI.channels(EVENTS),
+        'mikutter_slack'
+      ).next do |histories|
+        histories.each do |history|
+          Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
+            Plugin::Slack::Message.new(channel: 'mikutter',
+                                       user: users.find{|u| u.id == history['user']},
+                                       text: history['text'],
+                                       created: Time.at(Float(history['ts']).to_i),
+                                       team: 'ahiru3net')
+          }.next { |message|
+            Plugin.call :extract_receive_message, :slack, [message]
+          }.trap { |err|
+            error err
+          }
+        end
       end
     end
   end
@@ -80,19 +77,11 @@ Plugin.create(:slack) do
     # }
 
     # メッセージの処理
-    Thread.new {
-      # ユーザー一覧取得
-      Plugin::Slack::SlackAPI.users(EVENTS)
-    }.next { |users|
-      # User オブジェクト作成
-      Plugin::Slack::User.new(idname: "#{users[data['user']]}",
-                              name: "#{users[data['user']]}",
-                              profile_image_url: Plugin::Slack::SlackAPI.get_icon(EVENTS, data['user']))
-    }.next { |user|
+    Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
       # Message オブジェクト作成
       Plugin::Slack::Message.new(channel: 'test',
-                                 user: user,
-                                 text: "#{data['text']}",
+                                 user: users.find{|u| u.id == data['user']},
+                                 text: data['text'],
                                  created: Time.at(Float(data['ts']).to_i),
                                  team: 'test')
     }.next { |message|
