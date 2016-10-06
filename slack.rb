@@ -31,26 +31,30 @@ Plugin.create(:slack) do
     auth_result = Plugin::Slack::SlackAPI.auth_test
     puts "Slack Auth Test Result: #{auth_result ? '成功' : '失敗'}"
     if auth_result
-      histories = Plugin::Slack::SlackAPI.channel_history(EVENTS, Plugin::Slack::SlackAPI.channels(EVENTS), 'mikutter')
-      histories['messages'].each do |history|
-      histories.each do |history|
-        Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
-          [Plugin::Slack::SlackAPI.get_icon(EVENTS, history['user']), users]
-        }.next { |icon, users|
-          Plugin::Slack::User.new(idname: "#{users[history['user']]}",
-                                  name: "#{users[history['user']]}",
-                                  profile_image_url: icon)
-        }.next { |user|
-          Plugin::Slack::Message.new(channel: 'mikutter',
-                                     user: user,
-                                     text: "#{history['text']}",
-                                     created: Time.at(Float(history['ts']).to_i),
-                                     team: 'ahiru3net')
-        }.next { |message|
-          Plugin.call :extract_receive_message, :slack, [message]
-        }.trap { |err|
-          error err
-        }
+      Plugin::Slack::SlackAPI.channel_history(
+        EVENTS,
+        Plugin::Slack::SlackAPI.channels(EVENTS),
+        'mikutter-slack'
+      ).next do |histories|
+        histories.each do |history|
+          Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
+            [Plugin::Slack::SlackAPI.get_icon(EVENTS, history['user']), users]
+          }.next { |icon, users|
+            Plugin::Slack::User.new(idname: "#{users[history['user']]}",
+                                    name: "#{users[history['user']]}",
+                                    profile_image_url: icon)
+          }.next { |user|
+            Plugin::Slack::Message.new(channel: 'mikutter',
+                                       user: user,
+                                       text: "#{history['text']}",
+                                       created: Time.at(Float(history['ts']).to_i),
+                                       team: 'ahiru3net')
+          }.next { |message|
+            Plugin.call :extract_receive_message, :slack, [message]
+          }.trap { |err|
+            error err
+          }
+        end
       end
     end
   end

@@ -48,12 +48,14 @@ module Plugin::Slack
       # @param [Slack::Client] events EVENTS APIのインスタンス
       # @param [hash] channels
       # @param [String] name 取得したいチャンネル名
-      # @return [JSON] channels_history チャンネルのヒストリ
+      # @return [Delayer::Deferred::Deferredable] channels_history チャンネルのヒストリを引数にcallbackするDeferred
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
       def channel_history(events, channels, name)
-        channels.each do |channel|
-          if channel['name'] == name
-            return events.channels_history(channel: "#{channel['id']}")
+        Thread.new do
+          channels.each do |channel|
+            if channel['name'] == name
+              return events.channels_history(channel: "#{channel['id']}")
+            end
           end
         end
       end
