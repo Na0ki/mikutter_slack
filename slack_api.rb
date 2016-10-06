@@ -5,16 +5,11 @@ module Plugin::Slack
   class SlackAPI
     class << self
       # 認証テスト
-      # @return [Delayer::Deferred::Deferredable] 認証成功の可否
+      # @return [Delayer::Deferred::Deferredable] 認証結果を引数にcallbackするDeferred
       def auth_test
-        Thread.new {
+        Thread.new do
           Slack.auth_test
-        }.next { |result|
-          Delayer::Deferred.fail(result) unless result['ok']
-          Plugin.call(:slack_connected, auth)
-        }.trap { |err|
-          Plugin.call(:slack_connection_failed, err)
-        }
+        end
       end
 
 
@@ -22,19 +17,21 @@ module Plugin::Slack
       # @param [Slack::Client] events EVENTS APIのインスタンス
       # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
       def users(events)
-        Thread.new {
+        Thread.new do
           events.users_list['members'].map { |m|
             Plugin::Slack::User.new(m.symbolize)
           }
-        }
+        end
       end
 
 
       # チャンネルリスト返す
       # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @return [Array] channels チャンネル一覧
+      # @return [Delayer::Deferred::Deferredable] チャンネル一覧
       def channels(events)
-        events.channels_list['channels']
+        Thread.new do
+          events.channels_list['channels']
+        end
       end
 
 
@@ -44,7 +41,9 @@ module Plugin::Slack
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
       def all_channel_history(events)
         Thread.new do
-          events.channels_history(channel: "#{channels(events)['id']}")['messages']
+          channels(events).next { |chs|
+            events.channels_history(channel: "#{chs['id']}")['messages']
+          }
         end
       end
 
@@ -65,7 +64,7 @@ module Plugin::Slack
 
       # Emojiリストの取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @return [Delayer::Deferred::Deferredable] 絵文字リスト
+      # @return [Delayer::Deferred::Deferredable] 絵文字リストを引数にcallbackするDeferred
       def emoji_list(events)
         Thread.new do
           events.emoji_list

@@ -28,29 +28,36 @@ Plugin.create(:slack) do
   # 接続時に呼ばれる
   RTM.on :hello do
     puts 'Successfully connected.'
-    auth_result = Plugin::Slack::SlackAPI.auth_test
-    puts "Slack Auth Test Result: #{auth_result ? '成功' : '失敗'}"
-    if auth_result
-      Plugin::Slack::SlackAPI.channel_history(
-        EVENTS,
-        Plugin::Slack::SlackAPI.channels(EVENTS),
-        'mikutter_slack'
-      ).next do |histories|
-        histories.each do |history|
-          Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
-            Plugin::Slack::Message.new(channel: 'mikutter',
-                                       user: users.find{|u| u.id == history['user']},
-                                       text: history['text'],
-                                       created: Time.at(Float(history['ts']).to_i),
-                                       team: 'ahiru3net')
-          }.next { |message|
-            Plugin.call :extract_receive_message, :slack, [message]
-          }.trap { |err|
-            error err
-          }
+    Plugin::Slack::SlackAPI.auth_test.next { |auth|
+      puts "===== 認証成功 =====\n\tチーム: #{auth['team']}\n\tユーザー: #{auth['user']}" # DEBUG
+
+      Delayer::Deferred.fail(auth) unless auth['ok']
+      Plugin.call(:slack_connected, auth)
+      Plugin::Slack::SlackAPI.channels(EVENTS).next { |channels|
+        Plugin::Slack::SlackAPI.channel_history(
+            EVENTS,
+            channels,
+            'mikutter'
+        ).next do |histories|
+          histories.each do |history|
+            Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
+              Plugin::Slack::Message.new(channel: 'mikutter',
+                                         user: users.find { |u| u.id == history['user'] },
+                                         text: history['text'],
+                                         created: Time.at(Float(history['ts']).to_i),
+                                         team: 'ahiru3net')
+            }.next { |message|
+              Plugin.call :extract_receive_message, :slack, [message]
+            }.trap { |err|
+              error err
+            }
+          end
         end
-      end
-    end
+      }
+    }.trap { |err|
+      error err
+      Plugin.call(:slack_connection_failed, err)
+    }
   end
 
 
@@ -67,20 +74,13 @@ Plugin.create(:slack) do
     # 投稿内容が空の場合はスキップ
     next if data['text'].empty?
 
-    # FIXME: ごちゃごちゃしてるのでいい感じにする
-    # URL判定
-    # pattern = %r{<(.+?)>}
-    # data['text'].scan(pattern) { |m|
-    #   puts '=============================='
-    #   puts m
-    #   puts '=============================='
-    # }
+    # FIXME: Entityを使ってメッセージの整形をする
 
     # メッセージの処理
     Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
       # Message オブジェクト作成
       Plugin::Slack::Message.new(channel: 'test',
-                                 user: users.find{|u| u.id == data['user']},
+                                 user: users.find { |u| u.id == data['user'] },
                                  text: data['text'],
                                  created: Time.at(Float(data['ts']).to_i),
                                  team: 'test')
