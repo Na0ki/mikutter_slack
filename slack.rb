@@ -4,8 +4,6 @@ require_relative 'model'
 
 Plugin.create(:slack) do
 
-  @defined_time = Time.new.freeze
-
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|
