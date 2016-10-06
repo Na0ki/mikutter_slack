@@ -39,10 +39,12 @@ module Plugin::Slack
 
       # 全てのチャンネルのヒストリを取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @return [JSON] 全チャンネルのヒストリ
+      # @return [Delayer::Deferred::Deferredable] channels_history チャンネルのヒストリを引数にcallbackするDeferred
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
       def all_channel_history(events)
-        events.channels_history(channel: "#{channels(events)['id']}")['messages']
+        Thread.new do
+          events.channels_history(channel: "#{channels(events)['id']}")['messages']
+        end
       end
 
 
