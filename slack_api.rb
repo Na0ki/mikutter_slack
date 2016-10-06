@@ -19,10 +19,12 @@ module Plugin::Slack
 
       # ユーザーリストを取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @return [Delayer::Deferred::Deferredable] {ユーザID: ユーザ名}のHashを引数にcallbackするDeferred
+      # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
       def users(events)
         Thread.new{
-          Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
+          events.users_list['members'].map { |m|
+            Plugin::Slack::User.new(m.symbolize)
+          }
         }
       end
 
@@ -52,11 +54,8 @@ module Plugin::Slack
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
       def channel_history(events, channels, name)
         Thread.new do
-          channels.each do |channel|
-            if channel['name'] == name
-              return events.channels_history(channel: "#{channel['id']}")
-            end
-          end
+          channel = channels.find{|c| c['name'] == name }
+          events.channels_history(channel: "#{channel['id']}")['messages']
         end
       end
 
@@ -67,19 +66,6 @@ module Plugin::Slack
       def emoji_list(events)
         events.emoji_list
       end
-
-
-      # ユーザのアイコンを取得
-      # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @param [String] id ユーザーID
-      # @return [String] アイコンのURL
-      def get_icon(events, id)
-        events.users_list['members'].each { |u|
-          return u.dig('profile', 'image_48') if u['id'] == id
-        }
-        Skin.get('icon.png')
-      end
-
     end
   end
 end
