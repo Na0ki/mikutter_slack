@@ -33,9 +33,7 @@ Plugin.create(:slack) do
     if auth_result
       histories = Plugin::Slack::SlackAPI.channel_history(EVENTS, Plugin::Slack::SlackAPI.channels(EVENTS), 'mikutter')
       histories['messages'].each do |history|
-        Thread.new {
-          Plugin::Slack::SlackAPI.users(EVENTS)
-        }.next { |users|
+        Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
           [Plugin::Slack::SlackAPI.get_icon(EVENTS, history['user']), users]
         }.next { |icon, users|
           Plugin::Slack::User.new(idname: "#{users[history['user']]}",
@@ -80,10 +78,7 @@ Plugin.create(:slack) do
     # }
 
     # メッセージの処理
-    Thread.new {
-      # ユーザー一覧取得
-      Plugin::Slack::SlackAPI.users(EVENTS)
-    }.next { |users|
+    Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
       # User オブジェクト作成
       Plugin::Slack::User.new(idname: "#{users[data['user']]}",
                               name: "#{users[data['user']]}",

@@ -19,9 +19,11 @@ module Plugin::Slack
 
       # ユーザーリストを取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
-      # @return [Hash] ユーザーリスト
-      def users(events)Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
-        Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
+      # @return [Delayer::Deferred::Deferredable] {ユーザID: ユーザ名}のHashを引数にcallbackするDeferred
+      def users(events)
+        Thread.new{
+          Hash[events.users_list['members'].map { |m| [m['id'], m['name']] }]
+        }
       end
 
 
