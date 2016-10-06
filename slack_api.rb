@@ -42,7 +42,7 @@ module Plugin::Slack
       # @return [JSON] 全チャンネルのヒストリ
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
       def all_channel_history(events)
-        events.channels_history(channel: "#{channels(events)['id']}")
+        events.channels_history(channel: "#{channels(events)['id']}")['messages']
       end
 
 
