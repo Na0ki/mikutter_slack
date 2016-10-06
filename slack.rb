@@ -33,6 +33,7 @@ Plugin.create(:slack) do
     if auth_result
       histories = Plugin::Slack::SlackAPI.channel_history(EVENTS, Plugin::Slack::SlackAPI.channels(EVENTS), 'mikutter')
       histories['messages'].each do |history|
+      histories.each do |history|
         Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
           [Plugin::Slack::SlackAPI.get_icon(EVENTS, history['user']), users]
         }.next { |icon, users|
