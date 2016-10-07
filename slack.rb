@@ -31,30 +31,37 @@ Plugin.create(:slack) do
     Plugin::Slack::SlackAPI.auth_test.next { |auth|
       puts "===== 認証成功 =====\n\tチーム: #{auth['team']}\n\tユーザー: #{auth['user']}" # DEBUG
 
+      # 認証失敗時は強制的にエラー処理へ飛ばし、ヒストリを取得しない
       Delayer::Deferred.fail(auth) unless auth['ok']
+
       Plugin.call(:slack_connected, auth)
+
+      # チャンネル一覧取得
       Plugin::Slack::SlackAPI.channels(EVENTS).next { |channels|
+        # チャンネルヒストリ取得
         Plugin::Slack::SlackAPI.channel_history(
             EVENTS,
             channels,
             'mikutter'
-        ).next do |histories|
+        )
+      }.next { |histories|
+        # ユーザー取得
+        Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
           histories.each do |history|
-            Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
-              Plugin::Slack::Message.new(channel: 'mikutter',
-                                         user: users.find { |u| u.id == history['user'] },
-                                         text: history['text'],
-                                         created: Time.at(Float(history['ts']).to_i),
-                                         team: 'ahiru3net')
-            }.next { |message|
-              Plugin.call :extract_receive_message, :slack, [message]
-            }.trap { |err|
-              error err
-            }
+            message = Plugin::Slack::Message.new(channel: 'mikutter_slack',
+                                                 user: users.find { |u| u.id == history['user'] },
+                                                 text: history['text'],
+                                                 created: Time.at(Float(history['ts']).to_i),
+                                                 team: 'mikutter')
+            # データソースにメッセージを反映
+            Plugin.call :extract_receive_message, :slack, [message]
           end
-        end
+        }
+      }.trap { |err|
+        error err
       }
     }.trap { |err|
+      # 認証失敗時のエラーハンドリング
       error err
       Plugin.call(:slack_connection_failed, err)
     }
