@@ -4,13 +4,6 @@ require_relative 'model'
 
 Plugin.create(:slack) do
 
-  # 抽出データソース
-  # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
-  filter_extract_datasources do |ds|
-    [{slack: 'slack'}.merge(ds)]
-  end
-
-
   # トークンを設定
   token = UserConfig['slack_token']
   unless token.empty? || token == nil?
@@ -28,7 +21,7 @@ Plugin.create(:slack) do
   # 接続時に呼ばれる
   RTM.on :hello do
     Plugin::Slack::SlackAPI.auth_test.next { |auth|
-      notice "===== 認証成功 =====\n\tチーム: #{auth['team']}\n\tユーザー: #{auth['user']}" # DEBUG
+      notice "\n\t===== 認証成功 =====\n\tチーム: #{auth['team']}\n\tユーザー: #{auth['user']}" # DEBUG
 
       # 認証失敗時は強制的にエラー処理へ飛ばし、ヒストリを取得しない
       Delayer::Deferred.fail(auth) unless auth['ok']
@@ -41,7 +34,7 @@ Plugin.create(:slack) do
         Plugin::Slack::SlackAPI.channel_history(
             EVENTS,
             channels,
-            'mikutter'
+            'mikutter_slack'
         )
       }.next { |histories|
         # ユーザー取得
@@ -131,6 +124,22 @@ Plugin.create(:slack) do
     settings('開発') do
       input('トークン', :slack_token)
     end
+  end
+
+
+  # 抽出データソース
+  # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
+  filter_extract_datasources do |ds|
+    # チャンネルリスト取得
+    Plugin::Slack::SlackAPI.channels(EVENTS).next { |channels|
+      list = Hash.new
+      channels.each do |channel|
+        list["slack_#{'team'}_#{channel['name']}"] = ['slack', 'team', "#{channel['name']}"]
+      end
+      p list
+      [list.merge(ds)]
+    }
+    # [{slack: 'slack'}.merge(ds)]
   end
 
 
