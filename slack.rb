@@ -27,9 +27,8 @@ Plugin.create(:slack) do
 
   # 接続時に呼ばれる
   RTM.on :hello do
-    puts 'Successfully connected.'
     Plugin::Slack::SlackAPI.auth_test.next { |auth|
-      puts "===== 認証成功 =====\n\tチーム: #{auth['team']}\n\tユーザー: #{auth['user']}" # DEBUG
+      notice "===== 認証成功 =====\n\tチーム: #{auth['team']}\n\tユーザー: #{auth['user']}" # DEBUG
 
       # 認証失敗時は強制的にエラー処理へ飛ばし、ヒストリを取得しない
       Delayer::Deferred.fail(auth) unless auth['ok']
