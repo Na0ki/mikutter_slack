@@ -18,24 +18,6 @@ Plugin.create(:slack) do
   EVENTS = Slack::Client.new
 
 
-  # 抽出データソース
-  # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
-  filter_extract_datasources do |ds|
-    # チャンネルリスト取得
-    Plugin::Slack::SlackAPI.channels(EVENTS).next { |channels|
-      list = Hash.new
-      channels.each do |channel|
-        list["slack_#{'team'}_#{channel['name']}"] = ['slack', 'team', "#{channel['name']}"]
-      end
-      list.symbolize
-    }.next { |list|
-      [list.merge(ds)]
-    }.trap { |err|
-      error err
-    }
-  end
-
-
   # 接続時に呼ばれる
   RTM.on :hello do
     Plugin::Slack::SlackAPI.auth_test.next { |auth|
@@ -117,7 +99,25 @@ Plugin.create(:slack) do
     error err
   }
 
+  # Activity の設定
   defactivity 'slack_connection', 'Slack接続情報'
+
+
+  # 抽出データソース
+  # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
+  Thread.new {
+    Plugin::Slack::SlackAPI.channels(EVENTS).next { |channels|
+      list = Hash.new
+      channels.each do |channel|
+        list["slack_#{'team'}_#{channel['name']}"] = ['slack', 'team', "#{channel['name']}"]
+      end
+      list
+    }
+  }.next { |list|
+    filter_extract_datasources do |ds|
+      [list.symbolize.merge(ds)]
+    end
+  }
 
   # 実績設定
   # @see http://mikutter.blogspot.jp/2013/03/blog-post.html
