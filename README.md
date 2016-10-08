@@ -32,10 +32,13 @@ $ git clone https://github.com/Na0ki/mikutter_slack.git slack
 
 
 ## 開発に関するWiki
-1. [mikutter_slack Wiki](https://github.com/Na0ki/mikutter_slack/wiki)
+* [mikutter_slack Wiki](https://github.com/Na0ki/mikutter_slack/wiki)
 
 
 # システム要件
+*要件を満たしているなら動くとは言っていない*
+
 | name      |      version  |  
 |:----------|--------------:|
 |mikutter   | 3.5.0-develop |
+|ruby       |         2.3.0 |
