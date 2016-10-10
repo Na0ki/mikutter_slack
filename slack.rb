@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'slack'
 require_relative 'model'
+require_relative 'api'
 
 Plugin.create(:slack) do
 
@@ -12,8 +13,6 @@ Plugin.create(:slack) do
     end
   end
 
-
-  # RTM 及び Events API のインスタンス
   RTM = Slack.realtime
   EVENTS = Slack::Client.new
 

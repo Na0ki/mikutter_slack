@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
+# apaではない
 require 'slack'
+require_relative 'api/auth'
 
 module Plugin::Slack
   class SlackAPI
     class << self
-      # 認証テスト
-      # @return [Delayer::Deferred::Deferredable] 認証結果を引数にcallbackするDeferred
-      def auth_test
-        Thread.new do
-          Slack.auth_test
-        end
-      end
-
 
       # ユーザーリストを取得
       # @param [Slack::Client] events EVENTS APIのインスタンス
