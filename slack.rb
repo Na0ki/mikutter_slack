@@ -5,8 +5,9 @@ require_relative 'api'
 
 Plugin.create(:slack) do
 
+  # slack api インスタンス作成
   slack_api = Plugin::Slack::API.new(UserConfig['slack_token'])
-
+  # RTM 開始
   slack_api.realtime_start
 
   # Activity の設定
