@@ -2,15 +2,20 @@
 # apaではない
 require 'slack'
 require_relative 'api/auth'
+require_relative 'api/realtime'
 
 module Plugin::Slack
   class SlackAPI
-    attr_reader :realtime
+    attr_reader :client
 
-    # @param [Slack::Client] events EVENTS APIのインスタンス
+    # @param [String] token APIトークン
     def initialize(token)
       @client = Slack::Client.new(token: token)
-      @realtime = @client.realtime
+    end
+
+    # Realtime APIに接続する
+    def realtime_start
+      @realtime ||= Plugin::Slack::Realtime.new(self).start
     end
 
     # ユーザーリストを取得
