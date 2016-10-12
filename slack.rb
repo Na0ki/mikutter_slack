@@ -5,21 +5,11 @@ require_relative 'api'
 
 Plugin.create(:slack) do
 
-  # トークンを設定
-  token = UserConfig['slack_token']
-  unless token.empty? || token == nil?
-    Slack.configure do |config|
-      config.token = token
-    end
-  end
-
-  RTM = Slack.realtime
-  EVENTS = Slack::Client.new
-
+  slack_api = Plugin::Slack::SlackAPI.new(UserConfig['slack_token'])
 
   # 接続時に呼ばれる
-  RTM.on :hello do
-    Plugin::Slack::SlackAPI.auth_test.next { |auth|
+  slack_api.realtime.on :hello do
+    slack_api.auth_test.next { |auth|
       notice "\n\t===== 認証成功 =====\n\tチーム: #{auth['team']}\n\tユーザー: #{auth['user']}" # DEBUG
 
       # 認証失敗時は強制的にエラー処理へ飛ばし、ヒストリを取得しない
@@ -28,16 +18,15 @@ Plugin.create(:slack) do
       Plugin.call(:slack_connected, auth)
 
       # チャンネル一覧取得
-      Plugin::Slack::SlackAPI.channels(EVENTS).next { |channels|
+      slack_api.channels.next { |channels|
         # チャンネルヒストリ取得
-        Plugin::Slack::SlackAPI.channel_history(
-            EVENTS,
+        slack_api.channel_history(
             channels,
             'mikutter_slack'
         )
       }.next { |histories|
         # ユーザー取得
-        Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
+        slack_api.users.next { |users|
           histories.each do |history|
             message = Plugin::Slack::Message.new(channel: 'mikutter_slack',
                                                  user: users.find { |u| u.id == history['user'] },
@@ -63,7 +52,7 @@ Plugin.create(:slack) do
   # @param [Hash] data メッセージ
   # Thread に関しては以下を参考
   # @see https://github.com/toshia/delayer-deferred
-  RTM.on :message do |data|
+  slack_api.realtime.on :message do |data|
 
     # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
     # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
@@ -75,7 +64,7 @@ Plugin.create(:slack) do
     # FIXME: Entityを使ってメッセージの整形をする
 
     # メッセージの処理
-    Plugin::Slack::SlackAPI.users(EVENTS).next { |users|
+    slack_api.users.next { |users|
       # Message オブジェクト作成
       Plugin::Slack::Message.new(channel: 'test',
                                  user: users.find { |u| u.id == data['user'] },
@@ -93,7 +82,7 @@ Plugin.create(:slack) do
 
   Thread.new {
     # RTMに接続開始
-    RTM.start
+    slack_api.realtime.start
   }.trap { |err|
     error err
   }
@@ -105,7 +94,7 @@ Plugin.create(:slack) do
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   Thread.new {
-    Plugin::Slack::SlackAPI.channels(EVENTS).next { |channels|
+    slack_api.channels.next { |channels|
       list = Hash.new
       channels.each do |channel|
         list["slack_#{'team'}_#{channel['name']}"] = ['slack', 'team', "#{channel['name']}"]
