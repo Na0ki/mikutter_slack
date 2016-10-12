@@ -5,7 +5,7 @@ require_relative 'api/auth'
 require_relative 'api/realtime'
 
 module Plugin::Slack
-  class SlackAPI
+  class API
     attr_reader :client
 
     # @param [String] token APIトークン
@@ -43,8 +43,8 @@ module Plugin::Slack
     # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
     def all_channel_history
       Thread.new do
-        channels.next { |chs|
-          @client.channels_history(channel: "#{chs['id']}")['messages']
+        channels.next { |c|
+          @client.channels_history(channel: "#{c['id']}")['messages']
         }
       end
     end

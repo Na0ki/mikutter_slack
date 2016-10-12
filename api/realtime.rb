@@ -4,12 +4,13 @@ module Plugin::Slack
   class Realtime
     attr_reader :slack_api
 
-    # @param [Plugin::Slack::SlackAPI] slack_api 接続対象のSlackAPIのインスタンス
+    # @param [Plugin::Slack::API] slack_api 接続対象のSlackAPIのインスタンス
     def initialize(slack_api)
       @slack_api = slack_api
       @realtime = @slack_api.client.realtime
       @defined_time = Time.new
     end
+
 
     # Realtime APIに実際に接続する
     # @return [Plugin::Slack::Realtime] self
@@ -24,15 +25,17 @@ module Plugin::Slack
       self
     end
 
+
     private
 
+    # 接続時
     def connected
       slack_api.auth_test.next { |auth|
         notice "\n\t===== 認証成功 =====\n\tチーム: #{auth['team']}\n\tユーザー: #{auth['user']}" # DEBUG
 
         # 認証失敗時は強制的にエラー処理へ飛ばし、ヒストリを取得しない
         Delayer::Deferred.fail(auth) unless auth['ok']
-
+        # Activityに通知
         Plugin.call(:slack_connected, auth)
 
         # チャンネル一覧取得
@@ -69,9 +72,11 @@ module Plugin::Slack
         error err
         Plugin.call(:slack_connection_failed, err)
       }
-
     end
 
+
+    # 受信したメッセージのデータソースへの投稿
+    # @param [Hash] data メッセージ
     def receive_message(data)
       # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
       # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
@@ -96,6 +101,7 @@ module Plugin::Slack
         error err
       }
     end
+
 
     def setup
       # 接続時に呼ばれる

@@ -2,18 +2,18 @@
 require 'slack'
 
 module Plugin::Slack
-  module SlackAPI
+  module API
     class Channel
 
-      def initialize(events)
-        @events = events
+      def initialize(client)
+        @client = client
       end
 
       # チャンネルリスト返す
       # @return [Delayer::Deferred::Deferredable] チャンネル一覧
       def list
         Thread.new do
-          @events.channels_list['channels']
+          @client.channels_list['channels']
         end
       end
 
@@ -24,7 +24,7 @@ module Plugin::Slack
       def all_history
         Thread.new do
           list.next { |channel|
-            @events.channels_history(channel: "#{channel['id']}")['messages']
+            @client.channels_history(channel: "#{channel['id']}")['messages']
           }
         end
       end
@@ -37,7 +37,7 @@ module Plugin::Slack
       def history(name)
         Thread.new do
           channel = list.find { |c| c['name'] == name }
-          @events.channels_history(channel: "#{channel['id']}")['messages']
+          @client.channels_history(channel: "#{channel['id']}")['messages']
         end
       end
 

@@ -2,7 +2,7 @@
 require 'slack'
 
 module Plugin::Slack
-  class SlackAPI
+  class API
     def oauth(options)
       Thread.new do
         @client.oauth_access(options)

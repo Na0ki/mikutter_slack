@@ -5,7 +5,7 @@ require_relative 'api'
 
 Plugin.create(:slack) do
 
-  slack_api = Plugin::Slack::SlackAPI.new(UserConfig['slack_token'])
+  slack_api = Plugin::Slack::API.new(UserConfig['slack_token'])
 
   slack_api.realtime_start
 
