@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require_relative '../entity/message_entity'
 
 # Messageクラス
 # @see https://toshia.github.io/writing-mikutter-plugin/model/2016/09/30/model-messagemixin.html
@@ -17,13 +18,7 @@ module Plugin::Slack
     field.string :team, required: true
 
     entity_class Retriever::Entity::URLEntity
-
-
-    # イワシがいっぱいだあ…ちょっとだけもらっていこうかな
-    entity_class Retriever::Entity::RegexpEntity.
-        filter(/:(?:\w+):/, generator: -> s {
-          s.merge(open: 'http://totori.dip.jp/')
-        })
+    entity_class Plugin::Slack::Entity::MessageEntity
 
     def to_show
       @to_show ||= self[:text]
