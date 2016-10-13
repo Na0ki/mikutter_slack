@@ -18,6 +18,11 @@ module Plugin::Slack
 
     entity_class Retriever::Entity::URLEntity
 
+    entity_class Retriever::Entity::RegexpEntity.
+        filter(/:(?:\w+):/, generator: -> s {
+          s.merge(open: 'http://totori.dip.jp/')
+        })
+
     def to_show
       @to_show ||= self[:text]
     end
