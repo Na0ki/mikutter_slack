@@ -18,6 +18,8 @@ module Plugin::Slack
 
     entity_class Retriever::Entity::URLEntity
 
+
+    # イワシがいっぱいだあ…ちょっとだけもらっていこうかな
     entity_class Retriever::Entity::RegexpEntity.
         filter(/:(?:\w+):/, generator: -> s {
           s.merge(open: 'http://totori.dip.jp/')
