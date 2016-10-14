@@ -5,7 +5,19 @@ module Plugin::Slack
 
     # イワシがいっぱいだあ…ちょっとだけもらっていこうかな
     MessageEntity = Retriever::Entity::RegexpEntity.
-        filter(/:(?:\w+):/, generator: -> s {
+        filter(/<(.*?)>/, generator: -> s {
+          s
+        }).
+        filter(/<(#C.+)>/, generator: -> s {
+          s
+        }).
+        filter(/<(@U.+)>/, generator: -> s {
+          s
+        }).
+        filter(/<!.+>/, generator: -> s {
+          s
+        }).
+        filter(/:(.+):/, generator: -> s {
           s.merge(open: 'http://totori.dip.jp/')
         })
 

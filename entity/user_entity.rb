@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
-require_relative 'regexp_entity'
-
 module Plugin::Slack
   module Entity
-    # TODO: implement
+
+    UserEntity = Retriever::Entity::RegexpEntity.
+        filter(/<(@U.+)\|(.+)>/, generator: -> s {
+          s.merge(message: 'test')
+        })
+
   end
 end
