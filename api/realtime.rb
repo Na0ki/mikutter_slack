@@ -51,13 +51,13 @@ module Plugin::Slack
             histories.each do |history|
               user = users.find { |u| u.id == history['user'] }
               if user
-                message = Plugin::Slack::Message.new(channel: 'mikutter_slack',
+                message = Plugin::Slack::Message.new(channel: history['channel'],
                                                      user: user,
                                                      text: history['text'],
                                                      created: Time.at(Float(history['ts']).to_i),
                                                      team: 'mikutter')
                 # データソースにメッセージを反映
-                Plugin.call :extract_receive_message, :slack, [message]
+                Plugin.call :extract_receive_message, :"slack_#{'team'}_#{message.channel}", [message]
               else
                 error "user #{history['user'].inspect} does not exists."
                 error history.inspect
@@ -89,14 +89,15 @@ module Plugin::Slack
       # メッセージの処理
       slack_api.users.next { |users|
         # Message オブジェクト作成
-        Plugin::Slack::Message.new(channel: 'test',
+        p data['channel']
+        Plugin::Slack::Message.new(channel: data['channel'],
                                    user: users.find { |u| u.id == data['user'] },
                                    text: data['text'],
                                    created: Time.at(Float(data['ts']).to_i),
                                    team: 'test')
       }.next { |message|
         # データソースにメッセージを投稿
-        Plugin.call(:extract_receive_message, :slack, [message])
+        Plugin.call(:extract_receive_message, :"slack_#{'team'}_#{message.channel}", [message])
       }.trap { |err|
         error err
       }

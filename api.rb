@@ -58,7 +58,9 @@ module Plugin::Slack
     def channel_history(channels, name)
       Thread.new do
         channel = channels.find { |c| c['name'] == name }
-        @client.channels_history(channel: "#{channel['id']}")['messages']
+        @client.channels_history(channel: "#{channel['id']}")['messages'].map{|message_hash|
+          message_hash.merge('channel' => channel['id'])
+        }
       end
     end
 
