@@ -41,29 +41,13 @@ module Plugin::Slack
         # チャンネル一覧取得
         slack_api.channels.next { |channels|
           # チャンネルヒストリ取得
-          slack_api.channel_history(
-            channels,
-            'mikutter_slack'
-          )
-        }.next { |histories|
-          # ユーザー取得
-          slack_api.users.next { |users|
-            histories.each do |history|
-              user = users.find { |u| u.id == history['user'] }
-              if user
-                message = Plugin::Slack::Message.new(channel: history['channel'],
-                                                     user: user,
-                                                     text: history['text'],
-                                                     created: Time.at(Float(history['ts']).to_i),
-                                                     team: 'mikutter')
-                # データソースにメッセージを反映
-                Plugin.call :extract_receive_message, :"slack_#{'team'}_#{message.channel}", [message]
-              else
-                error "user #{history['user'].inspect} does not exists."
-                error history.inspect
-              end
-            end
-          }
+          channels.each do |channel|
+            slack_api.channel_history(channel).next { |messages|
+              Plugin.call :extract_receive_message, :"slack_#{'team'}_#{channel.id}", messages
+            }.trap { |err|
+              error err
+            }
+          end
         }.trap { |err|
           error err
         }
@@ -87,17 +71,13 @@ module Plugin::Slack
       # FIXME: Entityを使ってメッセージの整形をする
 
       # メッセージの処理
-      slack_api.users.next { |users|
-        # Message オブジェクト作成
-        p data['channel']
-        Plugin::Slack::Message.new(channel: data['channel'],
-                                   user: users.find { |u| u.id == data['user'] },
-                                   text: data['text'],
-                                   created: Time.at(Float(data['ts']).to_i),
-                                   team: 'test')
-      }.next { |message|
-        # データソースにメッセージを投稿
-        Plugin.call(:extract_receive_message, :"slack_#{'team'}_#{message.channel}", [message])
+      Delayer::Deferred.when(slack_api.users_dict, slack_api.channels_dict).next { |users, channels|
+        message = Plugin::Slack::Message.new(channel: channels[data['channel']],
+                                             user: users[data['user']],
+                                             text: data['text'],
+                                             created: Time.at(Float(data['ts']).to_i),
+                                             team: 'test')
+        Plugin.call(:extract_receive_message, :"slack_#{'team'}_#{message.channel.id}", [message])
       }.trap { |err|
         error err
       }

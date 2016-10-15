@@ -28,40 +28,47 @@ module Plugin::Slack
       end
     end
 
+    # ユーザーリストを取得する。
+    # usersとの違いは、Deferredの戻り値がキーにユーザID、値にPlugin::Slack::Userを持ったHashであること。
+    # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
+    def users_dict
+      users.next{|ary| Hash[ary.map{|_|[_.id, _]}] }
+    end
 
     # チャンネルリスト返す
-    # @return [Delayer::Deferred::Deferredable] チャンネル一覧
+    # @return [Delayer::Deferred::Deferredable] 全てのChannelを引数にcallbackするDeferred
     def channels
       Thread.new do
-        @client.channels_list['channels']
+        @client.channels_list['channels'].map{|_| Plugin::Slack::Channel.new(_.symbolize) }
       end
     end
 
-
-    # 全てのチャンネルのヒストリを取得
-    # @return [Delayer::Deferred::Deferredable] channels_history チャンネルのヒストリを引数にcallbackするDeferred
-    # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
-    def all_channel_history
-      Thread.new do
-        channels.next { |c|
-          @client.channels_history(channel: "#{c['id']}")['messages']
-        }
-      end
+    # チャンネルリストを取得する。
+    # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
+    # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
+    def channels_dict
+      channels.next{|ary| Hash[ary.map{|_|[_.id, _]}] }
     end
 
-
-    # 指定したチャンネル名のチャンネルのヒストリを取得
-    # @param [hash] channels
-    # @param [String] name 取得したいチャンネル名
-    # @return [Delayer::Deferred::Deferredable] channels_history チャンネルのヒストリを引数にcallbackするDeferred
+    # 指定したChannelのヒストリを取得
+    # @param [Plugin::Slack::Channel] channel ヒストリを取得したいChannel
+    # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
     # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
-    def channel_history(channels, name)
-      Thread.new do
-        channel = channels.find { |c| c['name'] == name }
-        @client.channels_history(channel: "#{channel['id']}")['messages'].map{|message_hash|
-          message_hash.merge('channel' => channel['id'])
-        }
-      end
+    def channel_history(channel)
+      Delayer::Deferred.when(
+        users_dict,
+        Thread.new{ @client.channels_history(channel: channel.id)['messages'] }
+      ).next{|users, histories|
+        histories.select{|history|
+          users.has_key?(history['user'])
+        }.map do |history|
+          Plugin::Slack::Message.new(channel: channel,
+                                     user: users[history['user']],
+                                     text: history['text'],
+                                     created: Time.at(Float(history['ts']).to_i),
+                                     team: 'mikutter')
+        end
+      }
     end
 
 
