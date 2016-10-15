@@ -10,7 +10,7 @@ module Plugin::Slack
     field.bool :is_starred
     field.bool :is_archived
     field.bool :is_general
-
+    field.has :team, Plugin::Slack::Team, required: true
     field.int :unread_count
     field.int :unread_count_display
   end

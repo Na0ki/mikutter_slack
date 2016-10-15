@@ -18,6 +18,13 @@ module Plugin::Slack
       @realtime ||= Plugin::Slack::Realtime.new(self).start
     end
 
+    # チームを取得する。
+    # 一度でもTeamの取得に成功すると、二度目以降はその内容を返す
+    # @return [Delayer::Deferred::Deferredable] Teamを引数にcallbackするDeferred
+    def team
+      Thread.new { team! }
+    end
+
     # ユーザーリストを取得
     # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
     def users
@@ -38,9 +45,12 @@ module Plugin::Slack
     # チャンネルリスト返す
     # @return [Delayer::Deferred::Deferredable] 全てのChannelを引数にcallbackするDeferred
     def channels
-      Thread.new do
-        @client.channels_list['channels'].map{|_| Plugin::Slack::Channel.new(_.symbolize) }
-      end
+      Delayer::Deferred.when(
+        team,
+        Thread.new{ @client.channels_list['channels'] }
+      ).next { |team, channels_hash|
+        channels_hash.map{|_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
+      }
     end
 
     # チャンネルリストを取得する。
@@ -78,6 +88,12 @@ module Plugin::Slack
       Thread.new do
         @client.emoji_list
       end
+    end
+
+    private
+
+    memoize def team!
+      Plugin::Slack::Team.new(@client.team_info['team'].symbolize)
     end
   end
 end

@@ -23,5 +23,11 @@ module Plugin::Slack
     def to_show
       @to_show ||= self[:text]
     end
+
+    # このMessageが所属するTeam
+    # @return [Plugin::Slack::Team] チーム
+    def team
+      channel.team
+    end
   end
 end

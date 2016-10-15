@@ -20,7 +20,7 @@ Plugin.create(:slack) do
     slack_api.channels.next { |channels|
       list = Hash.new
       channels.each do |channel|
-        list["slack_#{'team'}_#{channel['id']}"] = ['slack', 'team', "#{channel['name']}"]
+        list["slack_#{channel.team.id}_#{channel.id}"] = ['slack', channel.team.name, channel.name]
       end
       list
     }

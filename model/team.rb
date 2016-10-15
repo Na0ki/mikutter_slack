@@ -9,16 +9,5 @@ module Plugin::Slack
     field.string :name, required: true
     field.string :domain, required: true
     field.string :email_domain
-    field.has :channel, Channel, required: true
-    field.has :user, User, required: true
-    field.string :text, required: true
-
-    def idname
-      name
-    end
-
-    def profile_image_url
-      self[:icon][:image_44]
-    end
   end
 end
