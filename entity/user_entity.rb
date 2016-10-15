@@ -5,7 +5,7 @@ module Plugin::Slack
 
     UserEntity = Retriever::Entity::RegexpEntity.
         filter(/<(@U.+)\|(.+)>/, generator: -> s {
-          s.merge(message: 'test')
+          s
         })
 
   end

@@ -17,7 +17,7 @@ module Plugin::Slack
         filter(/<!.+>/, generator: -> s {
           s
         }).
-        filter(/:(.+):/, generator: -> s {
+        filter(/:[\w\-]+:/, generator: -> s {
           s.merge(open: 'http://totori.dip.jp/')
         })
 
