@@ -93,7 +93,7 @@ module Plugin::Slack
     private
 
     memoize def team!
-      Plugin::Slack::Team.new(@client.team_info['team'].symbolize)
+      Plugin::Slack::Team.new(@client.team_info['team'].symbolize.merge(api: self))
     end
   end
 end
