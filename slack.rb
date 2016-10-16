@@ -7,8 +7,13 @@ Plugin.create(:slack) do
 
   # slack api インスタンス作成
   slack_api = Plugin::Slack::API.new(UserConfig['slack_token'])
-  # RTM 開始
-  slack_api.realtime_start
+  slack_api.team.next{ |team|
+    @team = team
+    # RTM 開始
+    slack_api.realtime_start
+  }.trap { |err|
+    error err
+  }
 
   # Activity の設定
   defactivity 'slack_connection', 'Slack接続情報'
@@ -16,19 +21,13 @@ Plugin.create(:slack) do
 
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
-  Thread.new {
-    slack_api.channels.next { |channels|
-      list = Hash.new
-      channels.each do |channel|
-        list["slack_#{channel.team.id}_#{channel.id}"] = ['slack', channel.team.name, channel.name]
-      end
-      list
-    }
-  }.next { |list|
-    filter_extract_datasources do |ds|
-      [list.symbolize.merge(ds)]
+  filter_extract_datasources do |ds|
+    @team&.channels!&.each do |channel|
+      ds[channel.datasource_slug] = channel.datasource_name
     end
-  }
+    [ds]
+  end
+
 
   # 実績設定
   # @see http://mikutter.blogspot.jp/2013/03/blog-post.html

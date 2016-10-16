@@ -21,6 +21,16 @@ module Plugin::Slack
       end
     end
 
+    # このチームに所属しているユーザを、メモリキャッシュから返す。
+    # もしこのTeamのインスタンスにユーザがキャッシュされていない場合は、nilを返す。
+    # Deferredで結果を遅らせることができず、すぐに結果が手に入らないなら失敗したほうが良い場合にこのメソッドを使う。
+    # APIリクエストをしても良い場合はこのメソッドの代わりに Plugin::Slack::Team#users を利用する。
+    # @return [Array] チームに所属するユーザの配列
+    # @return [nil] 取得に失敗した場合
+    def users!
+      @users
+    end
+
     # ユーザIDに対応するUserをcallbackするDeferredを返す。
     # IDに対応するユーザが見つからなかった場合は、nilを引数に、trapブロックが呼ばれる。
     # @param [String] ユーザID
@@ -38,6 +48,16 @@ module Plugin::Slack
       else
         api.channels.next{ |c| @channels = c.freeze }
       end
+    end
+
+    # このチームに所属しているチャンネルを、メモリキャッシュから返す。
+    # もしこのTeamのインスタンスにチャンネルがキャッシュされていない場合は、nilを返す。
+    # Deferredで結果を遅らせることができず、すぐに結果が手に入らないなら失敗したほうが良い場合にこのメソッドを使う。
+    # APIリクエストをしても良い場合はこのメソッドの代わりに Plugin::Slack::Team#channels を利用する。
+    # @return [Array] チームに所属するチャンネルの配列
+    # @return [nil] 取得に失敗した場合
+    def channels!
+      @channels
     end
 
     # チャンネルIDに対応するChannelをcallbackするDeferredを返す。
