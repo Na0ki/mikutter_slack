@@ -38,16 +38,16 @@ module Plugin::Slack
         # Activityに通知
         Plugin.call(:slack_connected, auth)
 
-        # チャンネル一覧取得
-        slack_api.channels.next { |channels|
-          # チャンネルヒストリ取得
-          channels.each do |channel|
-            slack_api.channel_history(channel).next { |messages|
-              Plugin.call :extract_receive_message, :"slack_#{channel.team.id}_#{channel.id}", messages
-            }.trap { |err|
-              error err
-            }
-          end
+        slack_api.team.next { |team|
+          team.channels.next { |channels|
+            channels.each do |channel|
+              slack_api.channel_history(channel).next { |messages|
+                Plugin.call :extract_receive_message, channel.datasource_slug, messages
+              }.trap { |err|
+                error err
+              }
+            end
+          }
         }.trap { |err|
           error err
         }
@@ -71,13 +71,18 @@ module Plugin::Slack
       # FIXME: Entityを使ってメッセージの整形をする
 
       # メッセージの処理
-      Delayer::Deferred.when(slack_api.users_dict, slack_api.channels_dict).next { |users, channels|
-        message = Plugin::Slack::Message.new(channel: channels[data['channel']],
-                                             user: users[data['user']],
-                                             text: data['text'],
-                                             created: Time.at(Float(data['ts']).to_i),
-                                             team: 'test')
-        Plugin.call(:extract_receive_message, :"slack_#{message.team.id}_#{message.channel.id}", [message])
+      slack_api.team.next{ |team|
+        Delayer::Deferred.when(
+          team.user(data['user']),
+          team.channel(data['channel'])
+        ).next { |user, channel|
+          message = Plugin::Slack::Message.new(channel: channel,
+                                               user: user,
+                                               text: data['text'],
+                                               created: Time.at(Float(data['ts']).to_i),
+                                               team: 'test')
+          Plugin.call(:extract_receive_message, channel.datasource_slug, [message])
+        }
       }.trap { |err|
         error err
       }
