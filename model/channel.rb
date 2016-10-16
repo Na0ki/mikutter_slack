@@ -13,5 +13,13 @@ module Plugin::Slack
     field.has :team, Plugin::Slack::Team, required: true
     field.int :unread_count
     field.int :unread_count_display
+
+    def datasource_slug
+      :"slack_#{team.id}_#{id}"
+    end
+
+    def datasource_name
+      ['slack', team.name, name]
+    end
   end
 end

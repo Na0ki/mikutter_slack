@@ -42,7 +42,7 @@ module Plugin::Slack
           team.channels.next { |channels|
             channels.each do |channel|
               slack_api.channel_history(channel).next { |messages|
-                Plugin.call :extract_receive_message, :"slack_#{channel.team.id}_#{channel.id}", messages
+                Plugin.call :extract_receive_message, channel.datasource_slug, messages
               }.trap { |err|
                 error err
               }
@@ -81,7 +81,7 @@ module Plugin::Slack
                                                text: data['text'],
                                                created: Time.at(Float(data['ts']).to_i),
                                                team: 'test')
-          Plugin.call(:extract_receive_message, :"slack_#{message.team.id}_#{message.channel.id}", [message])
+          Plugin.call(:extract_receive_message, channel.datasource_slug, [message])
         }
       }.trap { |err|
         error err
