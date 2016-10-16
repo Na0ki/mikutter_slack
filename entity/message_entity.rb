@@ -19,6 +19,9 @@ module Plugin::Slack
         }).
         filter(/:[\w\-]+:/, generator: -> s {
           s.merge(open: 'http://totori.dip.jp/')
+        }).
+        filter(URI.regexp(%w<http https>), generator: ->s{
+          s.merge(open: s[:url])
         })
 
   end
