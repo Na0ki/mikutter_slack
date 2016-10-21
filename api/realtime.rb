@@ -93,6 +93,12 @@ module Plugin::Slack
       # 接続時に呼ばれる
       @realtime.on :hello do
         connected
+
+        Reserver.new(30) {
+          # TODO: 30秒ごとに ping を送る
+          # @see {https://api.slack.com/rtm}
+          # {"type": "ping"} こんな感じのjson
+        }
       end
 
       # メッセージ書き込み時に呼ばれる

@@ -66,4 +66,18 @@ Plugin.create(:slack) do
     activity :slack_connection, "Slackチーム #{auth['team']} の認証に失敗しました！"
   end
 
+
+  def image(display_url)
+    connection = HTTPClient.new
+    page = connection.get_content(display_url)
+    unless page.empty?
+      doc = Nokogiri::HTML(page)
+      doc.css('file_page_image').first.attribute('src') end end
+  # memoize :slack
+
+  defimageopener('slack', %r<^http://.+\.slack\.com/[a-zA-Z0-9]+\.png>) do |display_url|
+    img = image(display_url)
+    open(img) if img
+  end
+
 end

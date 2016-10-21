@@ -17,10 +17,3 @@ module Plugin::Slack
     memoize :slack
   end
 end
-
-module Plugin::Slack
-  defimageopener('slack', %r<^http://.+\.slack\.com/[a-zA-Z0-9]+>) do |display_url|
-    img = Plugin::PhotoSupport.slack(display_url)
-    open(img) if img
-  end
-end
