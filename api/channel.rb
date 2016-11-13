@@ -23,9 +23,9 @@ module Plugin::Slack
       def pub_list
         Delayer::Deferred.when(
             team,
-            Thread.new{ @client.channels_list['channels'] }
+            Thread.new { @client.channels_list['channels'] }
         ).next { |team, channels_hash|
-          channels_hash.map{|_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
+          channels_hash.map { |_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
         }
       end
 
@@ -33,7 +33,7 @@ module Plugin::Slack
       # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
       # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
       def pub_dict
-        channels.next{|ary| Hash[ary.map{|_|[_.id, _]}] }
+        channels.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
       end
 
       # 指定したパブリックChannelのヒストリを取得
@@ -43,9 +43,9 @@ module Plugin::Slack
       def pub_history(channel)
         Delayer::Deferred.when(
             users_dict,
-            Thread.new{ @client.channels_history(channel: channel.id)['messages'] }
-        ).next{|users, histories|
-          histories.select{|history|
+            Thread.new { @client.channels_history(channel: channel.id)['messages'] }
+        ).next { |users, histories|
+          histories.select { |history|
             users.has_key?(history['user'])
           }.map do |history|
             Plugin::Slack::Message.new(channel: channel,
@@ -67,9 +67,9 @@ module Plugin::Slack
       def pvt_list
         Delayer::Deferred.when(
             team,
-            Thread.new{ @client.groups_list['channels'] }
+            Thread.new { @client.groups_list['channels'] }
         ).next { |team, channels_hash|
-          channels_hash.map{|_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
+          channels_hash.map { |_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
         }
       end
 
@@ -77,7 +77,7 @@ module Plugin::Slack
       # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
       # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
       def pvt_dict
-        channels.next{|ary| Hash[ary.map{|_|[_.id, _]}] }
+        channels.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
       end
 
       # 指定したプライベートChannelのヒストリを取得
@@ -87,9 +87,9 @@ module Plugin::Slack
       def pvt_history(channel)
         Delayer::Deferred.when(
             users_dict,
-            Thread.new{ @client.groups_history(channel: channel.id)['messages'] }
-        ).next{|users, histories|
-          histories.select{|history|
+            Thread.new { @client.groups_history(channel: channel.id)['messages'] }
+        ).next { |users, histories|
+          histories.select { |history|
             users.has_key?(history['user'])
           }.map do |history|
             Plugin::Slack::Message.new(channel: channel,

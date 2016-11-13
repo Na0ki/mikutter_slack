@@ -21,5 +21,9 @@ module Plugin::Slack
     def datasource_name
       ['slack', team.name, name]
     end
+
+    def inspect
+      "#{self.class.to_s}(id=#{id}, name=#{name})"
+    end
   end
 end

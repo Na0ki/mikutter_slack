@@ -44,7 +44,7 @@ module Plugin::Slack
               slack_api.channel_history(channel).next { |messages|
                 Plugin.call :extract_receive_message, channel.datasource_slug, messages
               }.trap { |err|
-                error err
+                err.inspect
               }
             end
           }
@@ -94,11 +94,15 @@ module Plugin::Slack
       @realtime.on :hello do
         connected
 
-        Reserver.new(30) {
-          # TODO: 30秒ごとに ping を送る
-          # @see {https://api.slack.com/rtm}
-          # {"type": "ping"} こんな感じのjson
-        }
+        # Reserver.new(30) {
+        #   # TODO: 30秒ごとに ping を送る
+        #   # @see {https://api.slack.com/rtm}
+        #   # {"type": "ping"} こんな感じのjson
+        #   @realtime.on :ping do
+        #     puts 'aieeeeeeee'
+        #     @slack_api.send({'type':'ping'})
+        #   end
+        # }
       end
 
       # メッセージ書き込み時に呼ばれる

@@ -79,5 +79,9 @@ module Plugin::Slack
     def api
       self[:api]
     end
+
+    def inspect
+      "#{self.class.to_s}(id=#{id}, name=#{name})"
+    end
   end
 end
