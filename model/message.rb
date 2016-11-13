@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require_relative '../entity/message_entity'
+require_relative '../model/user'
 
 # Messageクラス
 # @see https://toshia.github.io/writing-mikutter-plugin/model/2016/09/30/model-messagemixin.html
@@ -12,7 +13,7 @@ module Plugin::Slack
              name: 'Slack Message'
 
     field.string :channel, required: true
-    field.has :user, User, required: true
+    field.has :user, Plugin::Slack::User, required: true
     field.string :text, required: true
     field.time :created
     field.string :team, required: true
@@ -28,6 +29,10 @@ module Plugin::Slack
     # @return [Plugin::Slack::Team] チーム
     def team
       channel.team
+    end
+
+    def inspect
+      "#{self.class.to_s}(channel=#{channel}, user=#{user}, team=#{team})"
     end
   end
 end
