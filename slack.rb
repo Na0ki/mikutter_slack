@@ -7,7 +7,7 @@ Plugin.create(:slack) do
 
   # slack api インスタンス作成
   slack_api = Plugin::Slack::API.new(UserConfig['slack_token'])
-  slack_api.team.next{ |team|
+  slack_api.team.next { |team|
     @team = team
     # RTM 開始
     slack_api.realtime_start
@@ -72,7 +72,10 @@ Plugin.create(:slack) do
     page = connection.get_content(display_url)
     unless page.empty?
       doc = Nokogiri::HTML(page)
-      doc.css('file_page_image').first.attribute('src') end end
+      doc.css('file_page_image').first.attribute('src')
+    end
+  end
+
   # memoize :slack
 
   defimageopener('slack', %r<^http://.+\.slack\.com/[a-zA-Z0-9]+\.png>) do |display_url|
