@@ -76,7 +76,7 @@ module Plugin::Slack
                                      user: users[history['user']],
                                      text: history['text'],
                                      created: Time.at(Float(history['ts']).to_i),
-                                     team: team)
+                                     team: 'mikutter')
         end
       }
     end
