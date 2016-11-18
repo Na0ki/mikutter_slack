@@ -13,9 +13,9 @@ module Plugin::Slack
              name: 'Slack Message'
 
     field.string :channel, required: true
-    field.has :user, Plugin::Slack::User, required: true
+    field.has    :user, Plugin::Slack::User, required: true
     field.string :text, required: true
-    field.time :created
+    field.time   :created
     field.string :team, required: true
 
     entity_class Retriever::Entity::URLEntity
@@ -32,7 +32,7 @@ module Plugin::Slack
     end
 
     def inspect
-      "#{self.class.to_s}(channel=#{channel}, user=#{user}, team=#{team})"
+      "#{self.class.to_s}(channel=#{channel.to_s}, user=#{user.to_s})"
     end
   end
 end
