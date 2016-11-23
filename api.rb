@@ -90,6 +90,20 @@ module Plugin::Slack
       end
     end
 
+
+    # メッセージの投稿
+    # @param [String] channel チャンネル名
+    # @param [String] text 投稿メッセージ
+    def post_message(channel, text)
+      option = {channel: channel,
+                text: text,
+                as_user: true}
+
+      Thread.new do
+        @client.chat_postMessage(option)
+      end
+    end
+
     private
 
     memoize def team!

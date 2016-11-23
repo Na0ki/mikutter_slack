@@ -83,4 +83,29 @@ Plugin.create(:slack) do
     open(img) if img
   end
 
+  # コマンド登録
+  # コマンドのslugはpost_to_slack_#{チーム名}_#{チャンネル名}の予定
+  command(:post_to_slack_mikutter_mikutter_slack,
+          name: 'mikutter:mikutter_slackに投稿する',
+          condition: lambda { |_| true },
+          visible: true,
+          role: :postbox
+  ) do |opt|
+    # FIXME: channel_nameを適切に取れるようにする
+    # 暫定的なイメージとしては、チャンネル分だけコマンド生やしたい
+    channel_name = 'mikutter_slack'
+
+    # postboxからメッセージを取得
+    message = Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text
+    # Slackにメッセージの投稿
+    slack_api.post_message(channel_name, message).next { |res|
+      activity :slack, "Slack:#{channel_name}に投稿しました: #{res}"
+      # 投稿成功時はpostboxのメッセージを初期化
+      Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text = ''
+    }.trap { |err|
+      activity :slack, "Slack:#{channel_name}への投稿に失敗しました: #{err}"
+      error "#{self.class.to_s}: #{err}"
+    }
+  end
+
 end
