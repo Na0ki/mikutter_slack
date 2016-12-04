@@ -3,6 +3,10 @@
 require 'slack'
 require_relative 'api/auth'
 require_relative 'api/realtime'
+require 'json'
+require 'Time'
+require 'eventmachine'
+require 'faye/websocket'
 
 module Plugin::Slack
   class API
@@ -16,6 +20,12 @@ module Plugin::Slack
     # Realtime APIに接続する
     def realtime_start
       @realtime ||= Plugin::Slack::Realtime.new(self).start
+      # wssのURL
+      @wss_url = @realtime.instance_variable_get(:@url)
+      @data_callback = @realtime.instance_variable_get(:@callback)
+
+      puts @data_callback
+      pingpong
     end
 
     # チームを取得する。
@@ -103,6 +113,52 @@ module Plugin::Slack
         @client.chat_postMessage(option)
       end
     end
+
+
+    def pingpong
+      id_num = [*1000..9999].sample
+      puts '==================================='
+      puts id_num
+      puts '==================================='
+
+
+      Thread.new {
+        data = {:id => id_num, :type => 'ping', :time => Time.now.to_i}
+        puts JSON.generate(data)
+      }.next { |json|
+        Faye::WebSocket::Client.new(@wss_url)
+      }.next { |conn|
+        conn.on :open do |e|
+          activity :slack, "WebSocketの確立: #{e}"
+          conn.send(json)
+        end
+
+        conn.on :error do |e|
+          Delayer::Deferred.fail("WebSocketの確立時にエラーが発生しました: #{e}")
+          activity :slack, "WebSocketの確立時にエラーが発生しました: #{e}"
+        end
+
+        conn.on :close do |e|
+          activity :slack, "WebSocketの終了: #{e}"
+        end
+
+        conn.on :message do |msg|
+          puts msg
+          result = JSON::parse(msg.data.to_s)
+
+          puts '=========================================='
+          puts result
+          puts '=========================================='
+
+          # FIXME: どう実装すべきか悩み中
+          # pingが成功すればReserverでpingを送る
+          # 失敗すればRTMへの接続をし直す
+        end
+      }.trap { |err|
+        error err
+      }
+    end
+
 
     private
 

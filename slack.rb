@@ -2,6 +2,7 @@
 require 'slack'
 require_relative 'model'
 require_relative 'api'
+require_relative 'utility/log'
 
 Plugin.create(:slack) do
 
@@ -35,7 +36,7 @@ Plugin.create(:slack) do
                  description: '設定画面からSlackのトークンを設定しよう',
                  hint: "Slackのトークンを取得して設定しよう！\nhttps://api.slack.com/docs/oauth-test-tokens"
   ) do |achievement|
-    on_slack_connected do |auth|
+    on_slack_connected do |_|
       achievement.take!
     end
   end
@@ -104,7 +105,7 @@ Plugin.create(:slack) do
       Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text = ''
     }.trap { |err|
       activity :slack, "Slack:#{channel_name}への投稿に失敗しました: #{err}"
-      error "#{self.class.to_s}: #{err}"
+      loge(self, "#{err}")
     }
   end
 

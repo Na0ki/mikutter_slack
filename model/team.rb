@@ -68,6 +68,29 @@ module Plugin::Slack
       id_detector(channels, channel_id)
     end
 
+
+    # TODO: コメントを書く
+    def emojis
+      cache = @emoji
+      if cache
+        Delayer::Deffered.new.next{ cache }
+      else
+        api.team.next { |t|
+          @emoji = t.emoji_list[:emoji].freeze
+        }
+      end
+    end
+
+
+    def emojis!
+      @emoji
+    end
+
+
+    def emoji(emoji_name)
+      id_detector(emojis, emoji_name)
+    end
+
     private
 
     def id_detector(defer, id)
