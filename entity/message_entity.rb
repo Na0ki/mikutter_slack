@@ -17,7 +17,7 @@ module Plugin::Slack
           #   p res
           #   s.merge(open: res, face: default_url[4])
           # }
-          s.merge(open: res, face: default_url[4])
+          s.merge(open: url, face: default_url[4])
         })
   end
 end
