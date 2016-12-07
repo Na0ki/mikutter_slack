@@ -4,7 +4,7 @@ require 'slack'
 require_relative 'api/auth'
 require_relative 'api/realtime'
 require 'json'
-require 'Time'
+require 'time'
 require 'eventmachine'
 require 'faye/websocket'
 
