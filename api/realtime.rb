@@ -68,8 +68,6 @@ module Plugin::Slack
       # 投稿内容が空の場合はスキップ
       return if data['text'].empty?
 
-      # FIXME: Entityを使ってメッセージの整形をする
-
       # メッセージの処理
       slack_api.team.next{ |team|
         Delayer::Deferred.when(

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+require_relative '../entity/channel_entity'
+require_relative '../entity/emoji_entity'
 require_relative '../entity/message_entity'
+require_relative '../entity/user_entity'
 require_relative '../model/user'
 require_relative '../model/channel'
 
@@ -21,6 +24,9 @@ module Plugin::Slack
 
     entity_class Retriever::Entity::URLEntity
     entity_class Plugin::Slack::Entity::MessageEntity
+    entity_class Plugin::Slack::Entity::UserEntity
+    entity_class Plugin::Slack::Entity::ChannelEntity
+    entity_class Plugin::Slack::Entity::EmojiEntity
 
     def to_show
       @to_show ||= self[:text]
