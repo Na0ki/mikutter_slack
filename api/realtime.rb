@@ -30,16 +30,16 @@ module Plugin::Slack
 
     # 接続時
     def connected
-      slack_api.auth_test.next { |auth|
-        notice "\n\t===== 認証成功 =====\n\tチーム: #{auth['team']}\n\tユーザー: #{auth['user']}" # DEBUG
+      Plugin::Slack::API::Auth.new(slack_api.client).auth_test.next { |auth|
+        notice "[認証成功] チーム: #{auth['team']}, ユーザー: #{auth['user']}" # DEBUG
 
         # 認証失敗時は強制的にエラー処理へ飛ばし、ヒストリを取得しない
         Delayer::Deferred.fail(auth) unless auth['ok']
         # Activityに通知
         Plugin.call(:slack_connected, auth)
 
-        slack_api.team.next { |team|
-          team.channels.next { |channels|
+        slack_api.team.next { |team| # チームの取得
+          team.channels.next { |channels| # チームのチャンネルリストを取得
             channels.each do |channel|
               slack_api.channel_history(channel).next { |messages|
                 Plugin.call :extract_receive_message, channel.datasource_slug, messages
@@ -69,10 +69,10 @@ module Plugin::Slack
       return if data['text'].empty?
 
       # メッセージの処理
-      slack_api.team.next{ |team|
+      slack_api.team.next { |team|
         Delayer::Deferred.when(
-          team.user(data['user']),
-          team.channel(data['channel'])
+            team.user(data['user']),
+            team.channel(data['channel'])
         ).next { |user, channel|
           message = Plugin::Slack::Message.new(channel: channel,
                                                user: user,

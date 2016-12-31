@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'slack'
+require 'httpclient'
 require_relative 'model'
 require_relative 'api'
 require_relative 'utility/log'
@@ -7,7 +8,7 @@ require_relative 'utility/log'
 Plugin.create(:slack) do
 
   # slack api インスタンス作成
-  slack_api = Plugin::Slack::API.new(UserConfig['slack_token'])
+  slack_api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
   slack_api.team.next { |team|
     @team = team
     # RTM 開始
@@ -38,6 +39,18 @@ Plugin.create(:slack) do
   ) do |achievement|
     on_slack_connected do |_|
       achievement.take!
+    end
+  end
+
+
+  def image(display_url)
+    connection = HTTPClient.new
+    img = connection.get_content(display_url, 'Authorization' => 'Bearer ' + UserConfig['slack_token'])
+    unless img.empty?
+      # doc = Nokogiri::HTML(img)
+      # doc.css('file_page_image').first.attribute('src')
+      p img
+      img
     end
   end
 

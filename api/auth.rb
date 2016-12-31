@@ -2,20 +2,23 @@
 require 'slack'
 
 module Plugin::Slack
-  class API
-    def oauth(options)
-      Thread.new do
-        @client.oauth_access(options)
-      end
-    end
+  module API
+    class Auth
 
-    # 認証テスト
-    # @return [Delayer::Deferred::Deferredable] 認証結果を引数にcallbackするDeferred
-    def auth_test
-      Thread.new do
-        @client.auth_test
+      def initialize(client)
+        @client = client
       end
-    end
 
+      def oauth(options)
+        Thread.new { @client.oauth_access(options) }
+      end
+
+      # 認証テスト
+      # @return [Delayer::Deferred::Deferredable] 認証結果を引数にcallbackするDeferred
+      def auth_test
+        Thread.new { @client.auth_test }
+      end
+
+    end
   end
 end

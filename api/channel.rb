@@ -47,13 +47,13 @@ module Plugin::Slack
         ).next { |users, histories|
           histories.select { |history|
             users.has_key?(history['user'])
-          }.map do |history|
+          }.map { |history|
             Plugin::Slack::Message.new(channel: channel,
                                        user: users[history['user']],
                                        text: history['text'],
                                        created: Time.at(Float(history['ts']).to_i),
                                        team: channel[:team].name)
-          end
+          }
         }
       end
 
