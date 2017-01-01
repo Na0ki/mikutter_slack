@@ -73,7 +73,7 @@ module Plugin::Slack
     def emojis
       cache = @emoji
       if cache
-        Delayer::Deffered.new.next{ cache }
+        Delayer::Deferred.new.next{ cache }
       else
         api.team.next { |t|
           @emoji = t.emoji_list[:emoji].freeze
