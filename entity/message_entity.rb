@@ -5,25 +5,22 @@ module Plugin::Slack
   module Entity
 
     MessageEntity = Retriever::Entity::RegexpEntity.
-        filter(/<(https:\/\/.+\.slack\.com\/files\/([\w\-]+)\/([\w\-]+)\/([\w\-]+)\.(jpg|jpeg|gif|png|bmp)(|\|(.*)))>/, generator: -> s {
-          # s_url = +s[:url]
-          # p "s_url = #{s_url}"
-          # no_title = /<(https:\/\/.+\.slack\.com\/files\/([\w\-]+)\/([\w\-]+)\.(jpg|jpeg|gif|png|bmp))>/.match(s[:url])
-          # with_title = /<(https:\/\/.+\.slack\.com\/files\/([\w\-]+)\/([\w\-]+)\/([\w\-]+)\.(jpg|jpeg|gif|png|bmp)\|(.*))>/.match(s[:url])
-          # if no_title.nil?
-          #   uri = with_title[3] # files-priに続くURI
-          #   ext = with_title[4] # ファイル拡張子
-          #   face = with_title[5] # 表示（ファイル名）
-          # else
-          #   uri = no_title[3] # files-priに続くURI
-          #   ext = no_title[4] # ファイル拡張子
-          #   face = no_title[1] # 表示（元URL）
-          # end
-          # url = "https://files.slack.com/files-pri/#{s[:message].team.id}-#{uri}.#{ext}"
-          # s.merge(open: url,
-          #         face: face,
-          #         url: url)
-          s
+        filter(/<(https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)(\.jpg|\.jpeg|\.gif|\.png|\.bmp)(.*|\|[\w\-]+))>/, generator: -> s {
+          # FIXME: 画像を開く際にはリクエストヘッダーをつける必要があるが、その処理を追加出来ていない
+          # TODO: URL周りは取りこぼしが多いのでカバーする
+          if s[:url] =~ /\|/
+            tmp = /<(.+)>/.match(s[:url])[1]&.split('|') # URLとファイル名で分割（区切り文字パイプ）
+            tmp2 = /https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)/.match(tmp[0])
+            face = tmp[1] # 表示名
+          else
+            tmp = /<(.+)>/.match(s[:url])[1]
+            tmp2 = /https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)/.match(tmp)
+            face = tmp # 表示名（元URL）
+          end
+          url = "https://files.slack.com/files-pri/#{s[:message].team.id}-#{tmp2[1]}/#{tmp2[2]}"
+          s.merge(open: url,
+                  face: face,
+                  url: url)
         }).
         filter(/<(!.+)>/, generator: -> s {
           s
@@ -42,7 +39,7 @@ module Plugin::Slack
           else
             no_name = /<(@(U.+))>/.match(s[:face])
             user_id = no_name[1]
-            user_name = no_name[1] # FIXME: ユーザーリストを取得して、マッチさせて表示名をIDからスクリーンネームにする
+            user_name = user_id
           end
           s.merge(url: user_id,
                   face: user_name)
@@ -54,7 +51,7 @@ module Plugin::Slack
                   url: 'http://totori.dip.jp/')
         }).
         filter(/<(.*)>/, generator: -> s {
-          # p "others: #{s[:face]}"
+          puts "others: #{s[:face]}"
           s
         })
   end
