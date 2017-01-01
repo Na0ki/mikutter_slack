@@ -3,7 +3,6 @@ require 'slack'
 require 'httpclient'
 require_relative 'model'
 require_relative 'api'
-require_relative 'utility/log'
 
 Plugin.create(:slack) do
 
@@ -45,10 +44,9 @@ Plugin.create(:slack) do
 
   def image(display_url)
     connection = HTTPClient.new
-    img = connection.get_content(display_url, 'Authorization' => 'Bearer ' + UserConfig['slack_token'])
+    img = connection.get_content(display_url,
+                                 'Authorization' => "Bearer #{UserConfig['slack_token']}")
     unless img.empty?
-      # doc = Nokogiri::HTML(img)
-      # doc.css('file_page_image').first.attribute('src')
       p img
       img
     end
@@ -83,27 +81,48 @@ Plugin.create(:slack) do
 
   # コマンド登録
   # コマンドのslugはpost_to_slack_#{チーム名}_#{チャンネル名}の予定
-  command(:post_to_slack_mikutter_mikutter_slack,
-          name: 'mikutter:mikutter_slackに投稿する',
+  command(:post_to_slack,
+          name: 'Slackに投稿する',
           condition: lambda { |_| true },
           visible: true,
           role: :postbox
   ) do |opt|
-    # FIXME: channel_nameを適切に取れるようにする
-    # 暫定的なイメージとしては、チャンネル分だけコマンド生やしたい
-    channel_name = 'mikutter_slack'
+    msg = Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text # postboxからメッセージを取得
 
-    # postboxからメッセージを取得
-    message = Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text
-    # Slackにメッセージの投稿
-    slack_api.post_message(channel_name, message).next { |res|
-      activity :slack, "Slack:#{channel_name}に投稿しました: #{res}"
-      # 投稿成功時はpostboxのメッセージを初期化
-      Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text = ''
-    }.trap { |err|
-      activity :slack, "Slack:#{channel_name}への投稿に失敗しました: #{err}"
-      loge(self, "#{err}")
-    }
+    channels = []
+    @team.instance_variable_get('@channels').each { |c| channels.push(c.name) }
+
+    dialog = Gtk::Dialog.new('Slackに投稿',
+                             $main_application_window,
+                             Gtk::Dialog::DESTROY_WITH_PARENT,
+                             [Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK],
+                             [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL])
+
+    dialog.vbox.add(Gtk::Label.new('チャンネル'))
+    channel_list = Gtk::ComboBox.new(true)
+    dialog.vbox.add(channel_list)
+    channels.each { |c| channel_list.append_text(c) }
+    channel_list.set_active(0)
+
+    dialog.show_all
+    result = dialog.run
+
+    if result == Gtk::Dialog::RESPONSE_OK
+      channel_name = channels[channel_list.active]
+      dialog.destroy
+
+      # Slackにメッセージの投稿
+      slack_api.post_message(channel_name, msg).next { |res|
+        activity :slack, "Slack:#{channel_name}に投稿しました: #{res}"
+        Delayer.new {
+          # 投稿成功時はpostboxのメッセージを初期化
+          Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text = ''
+        }
+      }.trap { |err|
+        activity :slack, "Slack:#{channel_name}への投稿に失敗しました: #{err}"
+        error "#{self.class.to_s}: #{msg}"
+      }
+    end
   end
 
 end
