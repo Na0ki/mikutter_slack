@@ -37,12 +37,18 @@ module Plugin::Slack
             user_id = with_name[2]
             user_name = "@#{with_name[3]}"
           else
-            no_name = /<(@(U.+))>/.match(s[:face])
+            no_name = /<@(U.+)>/.match(s[:face])
             user_id = no_name[1]
-            user_name = user_id
+            s[:message].team.user(user_id).next{|user|
+              s[:message].entity.add(s.merge(url: user.id,
+                                             face: "@#{user.name}"))
+            }.trap{|err|
+              error err
+            }
+            user_name = "loading(#{user_id})"
           end
           s.merge(url: user_id,
-                  face: user_name)
+                  face: "error(#{user_id})")
         }).
         filter(/:[\w\-]+:/, generator: -> s {
           emoji_name = /:([\w\-]+):/.match(s[:face])[1]
