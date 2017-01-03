@@ -3,10 +3,6 @@
 require 'slack'
 require_relative 'api/auth'
 require_relative 'api/realtime'
-# require 'json'
-# require 'time'
-# require 'eventmachine'
-# require 'faye/websocket'
 
 module Plugin::Slack
   module API
