@@ -22,6 +22,12 @@ module Plugin::Slack
                   face: face,
                   url: url)
         }).
+        filter(/<https?:\/\/.+>/, generator: -> s {
+          url = /<(.+)>/.match(s[:face])[1]
+          s.merge(open: url,
+                  face: url,
+                  url: url)
+        }).
         filter(/<(!.+)>/, generator: -> s {
           s
         }).
@@ -37,11 +43,11 @@ module Plugin::Slack
           else
             no_name = /<@(U.+)>/.match(s[:face])
             user_id = no_name[1]
-            s[:message].team.user(user_id).next{|user|
+            s[:message].team.user(user_id).next { |user|
               s[:message].entity.add(s.merge(open: "https://#{team_name}.slack.com/team/#{user.name}",
                                              url: "https://#{team_name}.slack.com/team/#{user.name}",
                                              face: "@#{user.name}"))
-            }.trap{|err|
+            }.trap { |err|
               error err
             }
           end
