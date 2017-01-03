@@ -31,19 +31,22 @@ module Plugin::Slack
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
           no_name = /^(?!.*\|).*(?=@U+).*$/.match(s[:face]) # |（パイプ）を含まない文字列を取得
           with_name = /<(@(U.+)\|(.+))>/.match(s[:face]) # |（パイプ）の後にユーザー名が入っているもの
+          team_name = s[:message].team.name
           if no_name.nil?
             user_id = with_name[2]
           else
             no_name = /<@(U.+)>/.match(s[:face])
             user_id = no_name[1]
             s[:message].team.user(user_id).next{|user|
-              s[:message].entity.add(s.merge(url: user.id,
+              s[:message].entity.add(s.merge(open: "https://#{team_name}.slack.com/team/#{user.name}",
+                                             url: "https://#{team_name}.slack.com/team/#{user.name}",
                                              face: "@#{user.name}"))
             }.trap{|err|
               error err
             }
           end
-          s.merge(url: user_id,
+          s.merge(open: "https://#{team_name}.slack.com/team/#{user_id}",
+                  url: "https://#{team_name}.slack.com/team/#{user_id}",
                   face: "error(#{user_id})")
         }).
         filter(/:[\w\-]+:/, generator: -> s {
