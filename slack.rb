@@ -88,6 +88,7 @@ Plugin.create(:slack) do
           role: :postbox
   ) do |opt|
     msg = Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text # postboxからメッセージを取得
+    next if msg.empty?
 
     channels = []
     @team.instance_variable_get('@channels').each { |c| channels.push(c.name) }
@@ -122,6 +123,8 @@ Plugin.create(:slack) do
         activity :slack, "Slack:#{channel_name}への投稿に失敗しました: #{err}"
         error "#{self.class.to_s}: #{msg}"
       }
+    else
+      dialog.destroy
     end
   end
 
