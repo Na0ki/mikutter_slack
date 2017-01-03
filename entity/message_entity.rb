@@ -26,8 +26,6 @@ module Plugin::Slack
           s
         }).
         filter(/<(#(C.+)\|(.+))>/, generator: -> s {
-          channel_face = /<(#(C.+)\|(.+))>/.match(s[:face])
-          # s.merge(face: default_face[3])
           s
         }).
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
@@ -35,7 +33,6 @@ module Plugin::Slack
           with_name = /<(@(U.+)\|(.+))>/.match(s[:face]) # |（パイプ）の後にユーザー名が入っているもの
           if no_name.nil?
             user_id = with_name[2]
-            user_name = "@#{with_name[3]}"
           else
             no_name = /<@(U.+)>/.match(s[:face])
             user_id = no_name[1]
@@ -45,7 +42,6 @@ module Plugin::Slack
             }.trap{|err|
               error err
             }
-            user_name = "loading(#{user_id})"
           end
           s.merge(url: user_id,
                   face: "error(#{user_id})")

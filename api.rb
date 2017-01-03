@@ -21,12 +21,6 @@ module Plugin::Slack
       # Realtime APIに接続する
       def realtime_start
         @realtime ||= Plugin::Slack::Realtime.new(self).start
-        # wssのURL
-        # @wss_url = @realtime.instance_variable_get(:@url)
-        # @data_callback = @realtime.instance_variable_get(:@callback)
-        #
-        # puts @data_callback
-        # pingpong
       end
 
       # チームを取得する。
@@ -96,9 +90,7 @@ module Plugin::Slack
       # Emojiリストの取得
       # @return [Delayer::Deferred::Deferredable] 絵文字リストを引数にcallbackするDeferred
       def emoji_list
-        Thread.new do
-          @client.emoji_list
-        end
+        Thread.new { @client.emoji_list }
       end
 
 
@@ -106,59 +98,9 @@ module Plugin::Slack
       # @param [String] channel チャンネル名
       # @param [String] text 投稿メッセージ
       def post_message(channel, text)
-        option = {channel: channel,
-                  text: text,
-                  as_user: true}
-
-        Thread.new do
-          @client.chat_postMessage(option)
-        end
+        option = {channel: channel, text: text, as_user: true}
+        Thread.new { @client.chat_postMessage(option) }
       end
-
-
-      # def pingpong
-      #   id_num = [*1000..9999].sample
-      #   puts '==================================='
-      #   puts id_num
-      #   puts '==================================='
-      #
-      #
-      #   Thread.new {
-      #     data = {:id => id_num, :type => 'ping', :time => Time.now.to_i}
-      #     puts JSON.generate(data)
-      #   }.next { |json|
-      #     Faye::WebSocket::Client.new(@wss_url)
-      #   }.next { |conn|
-      #     conn.on :open do |e|
-      #       activity :slack, "WebSocketの確立: #{e}"
-      #       conn.send(json)
-      #     end
-      #
-      #     conn.on :error do |e|
-      #       Delayer::Deferred.fail("WebSocketの確立時にエラーが発生しました: #{e}")
-      #       activity :slack, "WebSocketの確立時にエラーが発生しました: #{e}"
-      #     end
-      #
-      #     conn.on :close do |e|
-      #       activity :slack, "WebSocketの終了: #{e}"
-      #     end
-      #
-      #     conn.on :message do |msg|
-      #       puts msg
-      #       result = JSON::parse(msg.data.to_s)
-      #
-      #       puts '=========================================='
-      #       puts result
-      #       puts '=========================================='
-      #
-      #       # FIXME: どう実装すべきか悩み中
-      #       # pingが成功すればReserverでpingを送る
-      #       # 失敗すればRTMへの接続をし直す
-      #     end
-      #   }.trap { |err|
-      #     error err
-      #   }
-      # end
 
 
       private
@@ -166,6 +108,7 @@ module Plugin::Slack
       memoize def team!
         Plugin::Slack::Team.new(@client.team_info['team'].symbolize.merge(api: self))
       end
+
     end
   end
 end
