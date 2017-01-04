@@ -23,9 +23,16 @@ module Plugin::Slack
                   url: url)
         }).
         filter(/<https?:\/\/.+>/, generator: -> s {
-          url = /<(.+)>/.match(s[:face])[1]
+          if s[:url] =~ /\|/
+            orig = /<(.+)>/.match(s[:url])[1]&.split('|')
+            url = orig[0]
+            face = orig[1]
+          else
+            url = /<(.+)>/.match(s[:face])[1]
+            face = url
+          end
           s.merge(open: url,
-                  face: url,
+                  face: face,
                   url: url)
         }).
         filter(/<(!.+)>/, generator: -> s {
