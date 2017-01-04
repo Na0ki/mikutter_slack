@@ -1,7 +1,7 @@
 ---
 slug: :slack
 depends:
-  mikutter: 3.5.0-develop
+  mikutter: 3.5.0
   plugin:
     - activity
 version: '0.0.2'
