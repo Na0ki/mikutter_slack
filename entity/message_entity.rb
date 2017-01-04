@@ -29,10 +29,10 @@ module Plugin::Slack
                   url: url)
         }).
         filter(/<(!.+)>/, generator: -> s {
-          s
+          s.merge(face: unescape(s[:face]))
         }).
         filter(/<(#(C.+)\|(.+))>/, generator: -> s {
-          s
+          s.merge(face: unescape(s[:face]))
         }).
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
           no_name = /^(?!.*\|).*(?=@U+).*$/.match(s[:face]) # |（パイプ）を含まない文字列を取得
@@ -63,7 +63,30 @@ module Plugin::Slack
         }).
         filter(/<(.*)>/, generator: -> s {
           puts "others: #{s[:face]}"
-          s
+          s.merge(face: unescape(s[:face]))
         })
+
+
+    private
+
+
+    # @see https://github.com/slack-ruby/slack-ruby-client/blob/master/lib/slack/messages/formatting.rb
+    def self.unescape(message)
+      CGI.unescapeHTML(message.gsub(/[“”]/, '"')
+                           .gsub(/[‘’]/, "'")
+                           .gsub(/<(?<sign>[?@#!]?)(?<dt>.*?)>/) { |_|
+        sign = $~[:sign]
+        dt = $~[:dt]
+        rhs = dt.split('|', 2).last
+        case sign
+          when '@', '!'
+            "@#{rhs}"
+          when '#'
+            "##{rhs}"
+          else
+            rhs
+        end
+      })
+    end
   end
 end
