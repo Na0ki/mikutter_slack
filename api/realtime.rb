@@ -78,7 +78,7 @@ module Plugin::Slack
                                                user: user,
                                                text: data['text'],
                                                created: Time.at(Float(data['ts']).to_i),
-                                               team: 'test')
+                                               team: team[:name])
           Plugin.call(:extract_receive_message, channel.datasource_slug, [message])
         }
       }.trap { |err|
