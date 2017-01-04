@@ -4,7 +4,7 @@ depends:
   mikutter: 3.5.0
   plugin:
     - activity
-version: '0.0.2'
+version: 0.0.2
 author: ahiru
 name: slack
 description: slack for mikutter

@@ -36,9 +36,7 @@ Plugin.create(:slack) do
                  description: '設定画面からSlackのトークンを設定しよう',
                  hint: "Slackのトークンを取得して設定しよう！\nhttps://api.slack.com/docs/oauth-test-tokens"
   ) do |achievement|
-    on_slack_connected do |_|
-      achievement.take!
-    end
+    on_slack_connected { |_| achievement.take! }
   end
 
 
