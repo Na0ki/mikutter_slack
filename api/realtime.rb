@@ -93,11 +93,6 @@ module Plugin::Slack
         connected
       end
 
-      @realtime.on :goodbye do
-        # @see https://api.slack.com/events/goodbye
-        # TODO: 再接続処理を書く
-        puts 'Will disconnect from server soon'
-      end
 
       # メッセージ書き込み時に呼ばれる
       # @param [Hash] data メッセージ
