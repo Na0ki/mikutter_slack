@@ -7,28 +7,27 @@ module Plugin::Slack
     MessageEntity = Retriever::Entity::RegexpEntity.
         filter(/<(https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)(\.jpg|\.jpeg|\.gif|\.png|\.bmp)(.*|\|[\w\-]+))>/, generator: -> s {
           # FIXME: 画像を開く際にはリクエストヘッダーをつける必要があるが、その処理を追加出来ていない
-          # TODO: URL周りは取りこぼしが多いのでカバーする
+          m = /<(.+)>/.match(s[:url])[1]
           if s[:url] =~ /\|/
-            tmp = /<(.+)>/.match(s[:url])[1]&.split('|') # URLとファイル名で分割（区切り文字パイプ）
-            tmp2 = /https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)/.match(tmp[0])
-            face = tmp[1] # 表示名
+            n = /https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)/.match(m&.split('|')[0])
+            face = m.split('|')[1] # 表示名
           else
-            tmp = /<(.+)>/.match(s[:url])[1]
-            tmp2 = /https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)/.match(tmp)
-            face = tmp # 表示名（元URL）
+            n = /https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)/.match(m)
+            face = m # 表示名（元URL）
           end
-          url = "https://files.slack.com/files-pri/#{s[:message].team.id}-#{tmp2[1]}/#{tmp2[2]}"
+          url = Retriever::URI("https://files.slack.com/files-pri/#{s[:message].team.id}-#{n[1]}/#{n[2]}").to_uri.to_s
           s.merge(open: url,
                   face: face,
                   url: url)
         }).
         filter(/<https?:\/\/.+>/, generator: -> s {
+          orig = /<(.+)>/.match(s[:face])[1]
           if s[:url] =~ /\|/
-            orig = /<(.+)>/.match(s[:url])[1]&.split('|')
-            url = orig[0]
-            face = orig[1]
+            n = orig&.split('|')
+            url = n[0]
+            face = n[1]
           else
-            url = /<(.+)>/.match(s[:face])[1]
+            url = orig
             face = url
           end
           s.merge(open: url,
@@ -42,24 +41,22 @@ module Plugin::Slack
           s.merge(face: unescape(s[:face]))
         }).
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
-          no_name = /^(?!.*\|).*(?=@U+).*$/.match(s[:face]) # |（パイプ）を含まない文字列を取得
-          with_name = /<(@(U.+)\|(.+))>/.match(s[:face]) # |（パイプ）の後にユーザー名が入っているもの
-          team_name = s[:message].team.name
-          if no_name.nil?
-            user_id = with_name[2]
+          if s[:url] =~ /\|/
+            user_id = /<(@(U.+)\|(.+))>/.match(s[:face])[2]
           else
-            no_name = /<@(U.+)>/.match(s[:face])
-            user_id = no_name[1]
+            user_id = /<@(U.+)>/.match(s[:face])[1]
             s[:message].team.user(user_id).next { |user|
-              s[:message].entity.add(s.merge(open: "https://#{team_name}.slack.com/team/#{user.name}",
-                                             url: "https://#{team_name}.slack.com/team/#{user.name}",
+              uri = Retriever::URI(URI.encode("https://#{s[:message].team.name}.slack.com/team/#{user.name}")).to_uri.to_s
+              s[:message].entity.add(s.merge(open: uri,
+                                             url: uri,
                                              face: "@#{user.name}"))
             }.trap { |err|
               error err
             }
           end
-          s.merge(open: "https://#{team_name}.slack.com/team/#{user_id}",
-                  url: "https://#{team_name}.slack.com/team/#{user_id}",
+          uri = Retriever::URI("https://#{s[:message].team.name}.slack.com/team/#{user_id}").to_uri.to_s
+          s.merge(open: uri,
+                  url: uri,
                   face: "error(#{user_id})")
         }).
         filter(/:[\w\-]+:/, generator: -> s {
@@ -69,7 +66,6 @@ module Plugin::Slack
                   url: 'http://totori.dip.jp/')
         }).
         filter(/<(.*)>/, generator: -> s {
-          puts "others: #{s[:face]}"
           s.merge(face: unescape(s[:face]))
         })
 
