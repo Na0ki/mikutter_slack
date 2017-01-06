@@ -23,9 +23,7 @@ Plugin.create(:slack) do
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|
-    @team&.channels!&.each do |channel|
-      ds[channel.datasource_slug] = channel.datasource_name
-    end
+    @team&.channels!&.each { |channel| ds[channel.datasource_slug] = channel.datasource_name }
     [ds]
   end
 
@@ -77,53 +75,58 @@ Plugin.create(:slack) do
   end
 
 
-  # コマンド登録
-  # コマンドのslugはpost_to_slack_#{チーム名}_#{チャンネル名}の予定
-  command(:post_to_slack,
-          name: 'Slackに投稿する',
-          condition: lambda { |_| true },
-          visible: true,
-          role: :postbox
-  ) do |opt|
-    msg = Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text # postboxからメッセージを取得
-    next if msg.empty?
-
-    channels = []
-    @team.instance_variable_get('@channels').each { |c| channels.push(c.name) }
-
-    dialog = Gtk::Dialog.new('Slackに投稿',
-                             $main_application_window,
-                             Gtk::Dialog::DESTROY_WITH_PARENT,
-                             [Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK],
-                             [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL])
-
-    dialog.vbox.add(Gtk::Label.new('チャンネル'))
-    channel_list = Gtk::ComboBox.new(true)
-    dialog.vbox.add(channel_list)
-    channels.each { |c| channel_list.append_text(c) }
-    channel_list.set_active(0)
-
-    dialog.show_all
-    result = dialog.run
-
-    if result == Gtk::Dialog::RESPONSE_OK
-      channel_name = channels[channel_list.active]
-      dialog.destroy
-
-      # Slackにメッセージの投稿
-      slack_api.post_message(channel_name, msg).next { |res|
-        activity :slack, "Slack:#{channel_name}に投稿しました: #{res}"
-        Delayer.new {
-          # 投稿成功時はpostboxのメッセージを初期化
-          Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text = ''
-        }
-      }.trap { |err|
-        activity :slack, "Slack:#{channel_name}への投稿に失敗しました: #{err}"
-        error "#{self.class.to_s}: #{msg}"
-      }
-    else
-      dialog.destroy
-    end
+  on_slack_post do |channel, message|
+    # Slackにメッセージの投稿
+    slack_api.post_message(channel, message).next { |res|
+      activity :slack, "Slack:#{channel}に投稿しました: #{res}"
+    }.trap { |err|
+      activity :slack, "Slack:#{channel_name}への投稿に失敗しました: #{err}"
+      error "#{self.class.to_s}: #{err}"
+    }
   end
+  #
+  #
+  # # コマンド登録
+  # # コマンドのslugはpost_to_slack_#{チーム名}_#{チャンネル名}の予定
+  # command(:post_to_slack,
+  #         name: 'Slackに投稿する',
+  #         condition: lambda { |_| true },
+  #         visible: true,
+  #         role: :postbox
+  # ) do |opt|
+  #   msg = Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text # postboxからメッセージを取得
+  #   next if msg.empty?
+  #
+    # channels = []
+    # @team.instance_variable_get('@channels').each { |c| channels.push(c.name) }
+  #
+  #   dialog = Gtk::Dialog.new('Slackに投稿',
+  #                            $main_application_window,
+  #                            Gtk::Dialog::DESTROY_WITH_PARENT,
+  #                            [Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK],
+  #                            [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL])
+  #
+  #   dialog.vbox.add(Gtk::Label.new('チャンネル'))
+  #   channel_list = Gtk::ComboBox.new(true)
+  #   dialog.vbox.add(channel_list)
+  #   channels.each { |c| channel_list.append_text(c) }
+  #   channel_list.set_active(0)
+  #
+  #   dialog.show_all
+  #   result = dialog.run
+  #
+  #   if result == Gtk::Dialog::RESPONSE_OK
+  #     channel_name = channels[channel_list.active]
+  #     dialog.destroy
+  #
+  #     # Slackにメッセージの投稿
+  #     Plugin.call(:slack_post, channel_name, msg)
+  #     # FIXME: Plugin.call() した際の成功の可否が知りたい
+  #     # 投稿成功時はpostboxのメッセージを初期化
+  #     Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text = ''
+  #   else
+  #     dialog.destroy
+  #   end
+  # end
 
 end
