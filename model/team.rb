@@ -15,9 +15,9 @@ module Plugin::Slack
     def users
       cache = @users
       if cache
-        Delayer::Deferred.new.next{ cache }
+        Delayer::Deferred.new.next { cache }
       else
-        api.users.next{ |u| @users = u.freeze }
+        api.users.next { |u| @users = u.freeze }
       end
     end
 
@@ -44,9 +44,9 @@ module Plugin::Slack
     def channels
       cache = @channels
       if cache
-        Delayer::Deferred.new.next{ cache }
+        Delayer::Deferred.new.next { cache }
       else
-        api.channels.next{ |c| @channels = c.freeze }
+        api.channels.next { |c| @channels = c.freeze }
       end
     end
 
@@ -73,7 +73,7 @@ module Plugin::Slack
     def emojis
       cache = @emoji
       if cache
-        Delayer::Deferred.new.next{ cache }
+        Delayer::Deferred.new.next { cache }
       else
         api.team.next { |t| @emoji = t.emoji_list[:emoji].freeze }
       end
@@ -92,8 +92,8 @@ module Plugin::Slack
     private
 
     def id_detector(defer, id)
-      defer.next{ |list|
-        list.find{ |o| o.id == id } or Delayer::Deferred.fail(:id_notfound)
+      defer.next { |list|
+        list.find { |o| o.id == id } or Delayer::Deferred.fail(:id_notfound)
       }
     end
 

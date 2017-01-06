@@ -19,9 +19,7 @@ module Plugin::Slack
       Thread.new {
         # RTMに接続開始
         @realtime.start
-      }.trap { |err|
-        error err
-      }
+      }.trap { |e| error e }
       self
     end
 
@@ -43,18 +41,14 @@ module Plugin::Slack
             channels.each do |channel|
               slack_api.channel_history(channel).next { |messages|
                 Plugin.call :extract_receive_message, channel.datasource_slug, messages
-              }.trap { |err|
-                err.inspect
-              }
+              }.trap { |e| e.inspect }
             end
           }
-        }.trap { |err|
-          error err
-        }
-      }.trap { |err|
+        }.trap { |e| error e }
+      }.trap { |e|
         # 認証失敗時のエラーハンドリング
-        error err
-        Plugin.call(:slack_connection_failed, err)
+        error e
+        Plugin.call(:slack_connection_failed, e)
       }
     end
 
@@ -93,15 +87,12 @@ module Plugin::Slack
         connected
       end
 
-
       # メッセージ書き込み時に呼ばれる
       # @param [Hash] data メッセージ
-      # Thread に関しては以下を参考
-      # @see https://github.com/toshia/delayer-deferred
       @realtime.on :message do |data|
         receive_message(data)
       end
-
     end
+
   end
 end
