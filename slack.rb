@@ -7,17 +7,12 @@ require_relative 'api'
 Plugin.create(:slack) do
 
   # slack api インスタンス作成
-  slack_api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
-  slack_api.team.next { |team|
+  api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
+  api.team.next { |team|
     @team = team
     # RTM 開始
-    slack_api.realtime_start
-  }.trap { |err|
-    error err
-  }
-
-  # Activity の設定
-  defactivity 'slack_connection', 'Slack接続情報'
+    api.realtime_start
+  }.trap { |e| error e }
 
 
   # 抽出データソース
@@ -25,16 +20,6 @@ Plugin.create(:slack) do
   filter_extract_datasources do |ds|
     @team&.channels!&.each { |channel| ds[channel.datasource_slug] = channel.datasource_name }
     [ds]
-  end
-
-
-  # 実績設定
-  # @see http://mikutter.blogspot.jp/2013/03/blog-post.html
-  defachievement(:slack_achieve,
-                 description: '設定画面からSlackのトークンを設定しよう',
-                 hint: "Slackのトークンを取得して設定しよう！\nhttps://api.slack.com/docs/oauth-test-tokens"
-  ) do |achievement|
-    on_slack_connected { |_| achievement.take! }
   end
 
 
@@ -46,6 +31,19 @@ Plugin.create(:slack) do
       p img
       img
     end
+  end
+
+
+  # 投稿
+  on_slack_post do |channel, message|
+    # Slackにメッセージの投稿
+    api.post_message(channel, message).next { |res|
+      notice "Slack:#{channel}に投稿しました: #{res}"
+      # TODO: slack_gui側で下記activityを実行できるようにする
+      # activity :slack, "Slack:#{channel}に投稿しました: #{res}"
+    }.trap { |e|
+      error "[#{self.class.to_s}] Slack:#{channel}への投稿に失敗しました: #{e}"
+    }
   end
 
 
@@ -61,72 +59,5 @@ Plugin.create(:slack) do
       input('トークン', :slack_token)
     end
   end
-
-
-  # 接続時
-  on_slack_connected do |auth|
-    activity :slack_connection, "Slackチーム #{auth['team']} の認証に成功しました！"
-  end
-
-
-  # 接続失敗時
-  on_slack_connection_failed do |auth|
-    activity :slack_connection, "Slackチーム #{auth['team']} の認証に失敗しました！"
-  end
-
-
-  on_slack_post do |channel, message|
-    # Slackにメッセージの投稿
-    slack_api.post_message(channel, message).next { |res|
-      activity :slack, "Slack:#{channel}に投稿しました: #{res}"
-    }.trap { |err|
-      activity :slack, "Slack:#{channel_name}への投稿に失敗しました: #{err}"
-      error "#{self.class.to_s}: #{err}"
-    }
-  end
-  #
-  #
-  # # コマンド登録
-  # # コマンドのslugはpost_to_slack_#{チーム名}_#{チャンネル名}の予定
-  # command(:post_to_slack,
-  #         name: 'Slackに投稿する',
-  #         condition: lambda { |_| true },
-  #         visible: true,
-  #         role: :postbox
-  # ) do |opt|
-  #   msg = Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text # postboxからメッセージを取得
-  #   next if msg.empty?
-  #
-    # channels = []
-    # @team.instance_variable_get('@channels').each { |c| channels.push(c.name) }
-  #
-  #   dialog = Gtk::Dialog.new('Slackに投稿',
-  #                            $main_application_window,
-  #                            Gtk::Dialog::DESTROY_WITH_PARENT,
-  #                            [Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK],
-  #                            [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL])
-  #
-  #   dialog.vbox.add(Gtk::Label.new('チャンネル'))
-  #   channel_list = Gtk::ComboBox.new(true)
-  #   dialog.vbox.add(channel_list)
-  #   channels.each { |c| channel_list.append_text(c) }
-  #   channel_list.set_active(0)
-  #
-  #   dialog.show_all
-  #   result = dialog.run
-  #
-  #   if result == Gtk::Dialog::RESPONSE_OK
-  #     channel_name = channels[channel_list.active]
-  #     dialog.destroy
-  #
-  #     # Slackにメッセージの投稿
-  #     Plugin.call(:slack_post, channel_name, msg)
-  #     # FIXME: Plugin.call() した際の成功の可否が知りたい
-  #     # 投稿成功時はpostboxのメッセージを初期化
-  #     Plugin.create(:gtk).widgetof(opt.widget).widget_post.buffer.text = ''
-  #   else
-  #     dialog.destroy
-  #   end
-  # end
 
 end

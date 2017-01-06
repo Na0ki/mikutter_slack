@@ -2,8 +2,7 @@
 slug: :slack
 depends:
   mikutter: 3.5.0
-  plugin:
-    - activity
+  plugin: []
 version: 0.0.2
 author: ahiru
 name: slack
