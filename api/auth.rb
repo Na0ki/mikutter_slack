@@ -11,6 +11,7 @@ module Plugin::Slack
     class Auth
 
       @redirect_uri = 'http://localhost:8080/'
+      # バカには見えない…バカには見えない…バカには見えない…
       @client_id = 'YOUR_CLIENT_ID'
       @client_secret = 'YOUR_CLIENT_SECRET'
 
@@ -30,7 +31,6 @@ module Plugin::Slack
       def oauth
         Thread.new {
           client = HTTPClient.new
-          # バカには見えない…バカには見えない…バカには見えない…
           query = {client_id: @client_id,
                    scope: 'client',
                    redirect_uri: @redirect_uri,
