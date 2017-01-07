@@ -5,16 +5,17 @@ require 'cgi'
 require 'json'
 require 'httpclient'
 require 'webrick'
+require_relative '../environment'
 
 module Plugin::Slack
   module API
     class Auth
 
       # TODO: 認証を開発者トークンとOAuthのどちらでもできるようにする
-      @redirect_uri = 'http://localhost:8080/'
-      # バカには見えない…バカには見えない…バカには見えない…
-      @client_id = 'YOUR_CLIENT_ID'
-      @client_secret = 'YOUR_CLIENT_SECRET'
+      # バカにしか見えない…バカにしか見えない…バカにしか見えない…
+      @client_id = Plugin::Slack::Environment::SLACK_CLIENT_ID
+      @client_secret = Plugin::Slack::Environment::SLACK_CLIENT_SECRET
+      @redirect_uri = Plugin::Slack::Environment::SLACK_REDIRECT_URI
 
       def initialize(client)
         @client = client
