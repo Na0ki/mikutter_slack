@@ -10,6 +10,7 @@ module Plugin::Slack
   module API
     class Auth
 
+      # TODO: 認証を開発者トークンとOAuthのどちらでもできるようにする
       @redirect_uri = 'http://localhost:8080/'
       # バカには見えない…バカには見えない…バカには見えない…
       @client_id = 'YOUR_CLIENT_ID'
