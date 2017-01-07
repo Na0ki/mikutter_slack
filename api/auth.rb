@@ -29,7 +29,7 @@ module Plugin::Slack
       # OAuth認証を行う
       # @return [Delayer::Deferred::Deferredable] なんかを引数にcallbackするDeferred
       # @see {https://api.slack.com/docs/oauth}
-      def oauth
+      def self.oauth
         Thread.new {
           client = HTTPClient.new
           query = {client_id: @client_id, scope: 'client', redirect_uri: @redirect_uri, state: 'mikutter_slack'}.to_hash
@@ -51,7 +51,7 @@ module Plugin::Slack
               res.body = open(File.join(__dir__, '../www/', 'index.html'))
               @http.stop
               # アクセストークンの取得
-              oauth_access(query['code'][0]).trap { |e| error e }
+              self.oauth_access(query['code'][0]).trap { |e| error e }
             end
             trap('INT') { @http.stop }
             @http.start
@@ -77,7 +77,7 @@ module Plugin::Slack
       # @param [String] code コールバックコード
       # @return [Delayer::Deferred::Deferredable] access_tokenを引数にcallbackするDeferred
       # @see {https://api.slack.com/methods/oauth.access}
-      def oauth_access(code)
+      def self.oauth_access(code)
         Thread.new(code) { |c|
           client = HTTPClient.new
           query = {client_id: @client_id, client_secret: @client_secret, code: c, redirect_uri: @redirect_uri}.to_hash
@@ -87,7 +87,7 @@ module Plugin::Slack
           body = JSON.parse(res.body, symbolize_names: true)
           Delayer::Deferred.fail(body[:error]) unless body[:ok]
           notice "scope: #{body[:scope]}, user_id: #{body[:user_id]}, team_name: #{body[:team_name]}, team_id: #{body[:team_id]}"
-          body[:access_token]
+          UserConfig['slack_token'] = body[:access_token]
         }
       end
 
