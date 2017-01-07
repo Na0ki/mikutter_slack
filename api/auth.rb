@@ -31,10 +31,7 @@ module Plugin::Slack
       def oauth
         Thread.new {
           client = HTTPClient.new
-          query = {client_id: @client_id,
-                   scope: 'client',
-                   redirect_uri: @redirect_uri,
-                   state: 'mikutter_slack'}.to_hash
+          query = {client_id: @client_id, scope: 'client', redirect_uri: @redirect_uri, state: 'mikutter_slack'}.to_hash
           client.get('https://slack.com/oauth/authorize', :query => query, 'Content-Type' => 'application/json')
         }.next { |response|
           Delayer::Deferred.fail(response) unless (response.status_code == 302)
@@ -82,10 +79,7 @@ module Plugin::Slack
       def oauth_access(code)
         Thread.new(code) { |c|
           client = HTTPClient.new
-          query = {client_id: @client_id,
-                   client_secret: @client_secret,
-                   code: c,
-                   redirect_uri: @redirect_uri}.to_hash
+          query = {client_id: @client_id, client_secret: @client_secret, code: c, redirect_uri: @redirect_uri}.to_hash
           client.get('https://slack.com/api/oauth.access', :query => query, 'Content-Type' => 'application/json')
         }.next { |res|
           Delayer::Deferred.fail(res) unless res.status_code == 200
