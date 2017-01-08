@@ -15,7 +15,7 @@ module Plugin::Slack
             n = /https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)/.match(m)
             face = m # 表示名（元URL）
           end
-          url = Retriever::URI("https://files.slack.com/files-pri/#{s[:message].team.id}-#{n[1]}/#{n[2]}").to_uri.to_s
+          url = Retriever::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{n[1]}/#{n[2]}")).to_uri.to_s
           s.merge(open: url,
                   face: face,
                   url: url)
@@ -24,11 +24,11 @@ module Plugin::Slack
           orig = /<(.+)>/.match(s[:face])[1]
           if s[:url] =~ /\|/
             n = orig&.split('|')
-            url = n[0]
+            url = URI.encode(n[0])
             face = n[1]
           else
-            url = orig
-            face = url
+            url = URI.encode(orig)
+            face = orig
           end
           s.merge(open: url,
                   face: face,
