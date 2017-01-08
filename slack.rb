@@ -7,11 +7,6 @@ require_relative 'api'
 Plugin.create(:slack) do
 
   # slack api インスタンス作成
-  if UserConfig['slack_token'].empty?
-    Plugin::Slack::API::Auth.oauth.next { |_|
-      notice _
-    }.trap { |e| error e }
-  end
   api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
   api.team.next { |team|
     @team = team
@@ -39,6 +34,18 @@ Plugin.create(:slack) do
   end
 
 
+  on_slack_auth do
+    Plugin::Slack::API::Auth.oauth.next { |_|
+      api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
+      api.team.next { |team|
+        @team = team
+        # RTM 開始
+        api.realtime_start
+      }.trap { |e| error e }
+    }.trap { |e| error e}
+  end
+
+
   # 投稿
   on_slack_post do |channel, message|
     # Slackにメッセージの投稿
@@ -55,8 +62,19 @@ Plugin.create(:slack) do
   # mikutter設定画面
   # @see http://mikutter.blogspot.jp/2012/12/blog-post.html
   settings('Slack') do
+
+    settings('OAuth認証') do
+      auth = Gtk::Button.new('認証する')
+      auth.signal_connect('clicked') { Plugin.call(:slack_auth) }
+      closeup auth
+    end
+
     settings('開発者専用') do
       input('トークン', :slack_token)
+    end
+
+    settings('その他') do
+      about('mikutter Slack', {:name => 'slack', :version => '0.0.2', :license => 'MIT', :authors => %w(ahiru3net toshi_a)})
     end
   end
 

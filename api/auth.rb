@@ -88,6 +88,7 @@ module Plugin::Slack
           body = JSON.parse(res.body, symbolize_names: true)
           Delayer::Deferred.fail(body[:error]) unless body[:ok]
           notice "scope: #{body[:scope]}, user_id: #{body[:user_id]}, team_name: #{body[:team_name]}, team_id: #{body[:team_id]}"
+          notice "token: #{body[:access_token]}"
           UserConfig['slack_token'] = body[:access_token]
         }
       end
