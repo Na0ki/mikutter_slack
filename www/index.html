@@ -4,18 +4,25 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <link rel="shortcut icon" type="image/svg+xml" sizes="any" href="favicon.svg">
     <title>mikutter slack 認証</title>
     <style type="text/css">
         <!--
-        .footer,html{background:#fdf3fb}#ft p a,body,html{padding:0}a:active,a:focus,a:hover{outline:0}html{margin:0;color:#aab8c2;font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}#bd,#ft{min-width:240px;max-width:640px;width:auto;margin:0 auto}#bd .information{color:#66757f;font-weight:300}a:focus,a:hover,button.textual.link:focus,button.textual.link:hover,input.textual.link:focus,input.textual.link:hover{text-decoration:underline;cursor:pointer}a,a.hide-focus{text-decoration:none}#bd{padding:20px}.footer{border-top:1px solid #ccd6dd;background:#fab8fb}#ft{padding:5px 15px;overflow:hidden}#ft a{display:inline-block;padding:5px 0}#ft a.teokure{color:#fff;float:right;margin-left:20px}#header .logo a{width:24px;height:24px;background-position:0 0}body.oauth{padding-top:20px}.oauth #bd{border:1px solid #ccd6dd;border-radius:4px;margin-bottom:20px}.auth{position:relative;padding-right:20px;margin-right:250px}html{padding-top:46px;padding-top:0\9;-moz-box-sizing:border-box;box-sizing:border-box}#header{position:fixed;position:static\9;top:0;left:0;min-height:46px;width:100%;text-align:center;z-index:1500;color:#292f33;background:#fff;border-bottom:1px solid #ccd6dd;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor:default}#header .bar{position:relative;margin:0 auto;text-align:left;padding:0 20px}#header .logo{margin:0;padding:0;height:46px;position:absolute;top:0;left:0}#header .logo a{margin:0 0 0 10px;color:transparent;text-indent:-999em;border-bottom:2px solid #fff}blockquote,body,dd,dl,figure,h1,h2,h3,h4,h5,h6,p,pre{margin:0}#header a:focus,#header a:hover{text-decoration:none;outline:0}#header .logo a:focus{background-color:transparent;border-bottom-color:#55acee}body{direction:ltr;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:#fff;color:#292f33;font-size:14px;line-height:18px;overflow-y:scroll}body.ja{font-family:Arial,"Hiragino Kaku Gothic Pro",Osaka,Meiryo,"MS PGothic",sans-serif}a{color:#2b7bb9;background:0 0}
+        #bd,#ft,#header .logo{min-width:240px;max-width:640px}.footer,html{background:#fdf3fb}#ft p a,body,html{padding:0}a:active,a:focus,a:hover{outline:0}html{margin:0;color:#aab8c2;font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}#bd,#ft{width:auto;margin:0 auto}#bd .information{color:#66757f;font-weight:300}a:focus,a:hover{text-decoration:underline;cursor:pointer}#bd{padding:20px}.footer{border-top:1px solid #ccd6dd;background:#fab8fb}#ft{padding:5px 15px;overflow:hidden}#ft a{display:inline-block;padding:5px 0}#ft a.teokuright{color:#fff;float:right;margin-left:20px}#ft a.teokuleft{color:#fff;float:left;margin-right:20px}#header,body{color:#292f33}#header .logo a img{width:24px;height:24px;background-position:0 0}body.oauth{padding-top:20px}.oauth #bd{border:1px solid #ccd6dd;border-radius:4px;margin-bottom:20px}html{padding-top:46px;padding-top:0\9;-moz-box-sizing:border-box;box-sizing:border-box}#header{position:fixed;position:static\9;top:0;left:0;min-height:46px;width:100%;text-align:center;z-index:1500;background:#fff;border-bottom:1px solid #ccd6dd;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor:default}#header .logo{padding:5px;width:auto;margin:0 auto}#header .logo a img{display:inline-block;padding:5px 0}blockquote,body,dd,dl,figure,h1,h2,h3,h4,h5,h6,p,pre{margin:0}#header a:focus,#header a:hover{text-decoration:none;outline:0}#header .logo a:focus{background-color:transparent;border-bottom-color:#55acee}body{direction:ltr;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:#fff;font-size:14px;line-height:18px;overflow-y:scroll}body.ja{font-family:Arial,"Hiragino Kaku Gothic Pro",Osaka,Meiryo,"MS PGothic",sans-serif}a{color:#2b7bb9;text-decoration:none;background:0 0}
         -->
     </style>
 </head>
 
 <body class="oauth ja">
 
-<div id="header"></div>
+<div id="header">
+    <div class="logo">
+        <a class="github" href="https://github.com/Na0ki/mikutter_slack.git">
+            <img src="favicon.svg">
+        </a>
+    </div>
+</div>
 <div id="bd" role="main">
     <div class="information">
         <p>mikutterにアカウントへのアクセスを許可しました。</p>
@@ -24,7 +31,8 @@
 </div>
 <div class="footer">
     <div id="ft">
-        <a class="teokure" href="http://mikutter.hachune.net/">mikutterのホームページへ</a>
+        <a class="teokuleft" href="https://mikutter.slack.com/home">Slackへ</a>
+        <a class="teokuright" href="http://mikutter.hachune.net/">mikutterのホームページへ</a>
     </div>
 </div>
 

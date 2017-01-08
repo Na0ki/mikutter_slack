@@ -34,7 +34,7 @@ body {
     font-weight: 300;
 }
 
-a:focus, a:hover, button.textual.link:focus, button.textual.link:hover, input.textual.link:focus, input.textual.link:hover {
+a:focus, a:hover {
     text-decoration: underline;
     cursor: pointer;
 }
@@ -58,13 +58,19 @@ a:focus, a:hover, button.textual.link:focus, button.textual.link:hover, input.te
     padding: 5px 0;
 }
 
-#ft a.teokure {
+#ft a.teokuright {
     color: #ffffff;
     float: right;
     margin-left: 20px;
 }
 
-#header .logo a {
+#ft a.teokuleft {
+    color: #ffffff;
+    float: left;
+    margin-right: 20px;
+}
+
+#header .logo a img {
     width: 24px;
     height: 24px;
     background-position: 0 0;
@@ -78,12 +84,6 @@ body.oauth {
     border: 1px solid #ccd6dd;
     border-radius: 4px;
     margin-bottom: 20px;
-}
-
-.auth {
-    position: relative;
-    padding-right: 20px;
-    margin-right: 250px;
 }
 
 html {
@@ -112,27 +112,17 @@ html {
     cursor: default;
 }
 
-#header .bar {
-    position: relative;
-    margin: 0 auto;
-    text-align: left;
-    padding: 0 20px;
-}
-
 #header .logo {
-    margin: 0;
-    padding: 0;
-    height: 46px;
-    position: absolute;
-    top: 0;
-    left: 0;
+    padding: 5px 5px;
+    min-width: 240px;
+    max-width: 640px;
+    width: auto;
+    margin: 0 auto;
 }
 
-#header .logo a {
-    margin: 0 0 0 10px;
-    color: transparent;
-    text-indent: -999em;
-    border-bottom: 2px solid #fff;
+#header .logo a img {
+    display: inline-block;
+    padding: 5px 0;
 }
 
 blockquote, body, dd, dl, figure, h1, h2, h3, h4, h5, h6, p, pre {
@@ -166,8 +156,4 @@ a {
     color: #2b7bb9;
     text-decoration: none;
     background: 0 0;
-}
-
-a.hide-focus {
-    text-decoration: none;
 }
