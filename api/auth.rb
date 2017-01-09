@@ -41,24 +41,27 @@ module Plugin::Slack
           oauth_redirect_uri = response.header['location'][0]
           Plugin.call(:open, "https://slack.com#{URI.decode(oauth_redirect_uri)}")
           Thread.new {
-            @http = WEBrick::HTTPServer.new({
-                                                :DocumentRoot => File.join(__dir__, '../www/'),
-                                                :BindAddress => 'localhost',
-                                                :Port => 8080})
-            @http.mount_proc('/') do |_, res|
+            config = {
+                :DocumentRoot => File.join(__dir__, '../www/'),
+                :BindAddress => 'localhost',
+                :Port => 8080
+            }
+            @server = WEBrick::HTTPServer.new(config)
+            @server.mount_proc('/') do |_, res|
               Delayer::Deferred.fail(res) unless res.status == 200
               query = CGI.parse(res.request_uri.query)
               # ローカルのHTMLを表示
               res.body = open(File.join(__dir__, '../www/', 'index.html'))
-              @http.stop
               # アクセストークンの取得
-              self.oauth_access(query['code'][0]).trap { |e| error e }
+              self.oauth_access(query['code'][0]).next { |_token|
+                @server.shutdown
+              }.trap { |e| error e }
             end
-            trap('INT') { @http.stop }
-            @http.start
+            trap('INT') { @server.shutdown }
+            @server.start
           }.trap { |e|
             error e
-            @http.stop
+            @server.shutdown
           }
         }
       end
@@ -81,7 +84,12 @@ module Plugin::Slack
       def self.oauth_access(code)
         Thread.new(code) { |c|
           client = HTTPClient.new
-          query = {client_id: @client_id, client_secret: @client_secret, code: c, redirect_uri: @redirect_uri}.to_hash
+          query = {
+              client_id: @client_id,
+              client_secret: @client_secret,
+              code: c,
+              redirect_uri: @redirect_uri
+          }.to_hash
           client.get('https://slack.com/api/oauth.access', :query => query, 'Content-Type' => 'application/json')
         }.next { |res|
           Delayer::Deferred.fail(res) unless res.status_code == 200
