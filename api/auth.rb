@@ -22,11 +22,6 @@ module Plugin::Slack
       end
 
 
-      # ここから先はな…
-      # 黒魔術なんじゃあびゃああああああ
-      # OAuthライブラリがあるのにな…
-      # 使い方がよくわからんかったからWebRickでゴリ押しンギモチィィ⤴︎⤴︎
-
       # OAuth認証を行う
       # @return [Delayer::Deferred::Deferredable] なんかを引数にcallbackするDeferred
       # @see {https://api.slack.com/docs/oauth}
