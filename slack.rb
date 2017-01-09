@@ -3,6 +3,7 @@ require 'slack'
 require 'httpclient'
 require_relative 'model'
 require_relative 'api'
+require_relative 'environment'
 
 Plugin.create(:slack) do
 
@@ -42,7 +43,7 @@ Plugin.create(:slack) do
         # RTM 開始
         api.realtime_start
       }.trap { |e| error e }
-    }.trap { |e| error e}
+    }.trap { |e| error e }
   end
 
 
@@ -73,9 +74,18 @@ Plugin.create(:slack) do
       input('トークン', :slack_token)
     end
 
-    settings('その他') do
-      about('mikutter Slack', {:name => 'slack', :version => '0.0.2', :license => 'MIT', :authors => %w(ahiru3net toshi_a)})
-    end
+    about(_('%s について' % Plugin::Slack::Environment::NAME), {
+        :program_name => _('%s' % Plugin::Slack::Environment::NAME),
+        :copyright => _('2016-%s Naoki Maeda') % '2017',
+        :version => Plugin::Slack::Environment::VERSION,
+        :comments => _("サードパーティー製Slackクライアントのデファクトスタンダードを目指すmikutterプラグイン。\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
+        :license => (file_get_contents('./LICENSE') rescue nil),
+        :website => _('https://github.com/Na0ki/mikutter_slack.git'),
+        :authors => %w(ahiru3net toshi_a),
+        :artists => %w(ahiru3net),
+        :documenters => %w(ahiru3net toshi_a)
+    })
+
   end
 
 end
