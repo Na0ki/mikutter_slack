@@ -49,6 +49,9 @@ module Plugin::Slack
             @server = WEBrick::HTTPServer.new(config)
             @server.mount_proc('/') do |_, res|
               Delayer::Deferred.fail(res) unless res.status == 200
+
+              # TODO: res.request_uri を持たない場合に対応する（favicon.icoの要求）
+              # FIXME: webrickをshutdownするタイミングを修正する
               query = CGI.parse(res.request_uri.query)
               # ローカルのHTMLを表示
               res.body = open(File.join(__dir__, '../www/', 'index.html'))
