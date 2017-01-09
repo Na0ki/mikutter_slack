@@ -64,7 +64,11 @@ module Plugin::Slack
       def channel_history(channel)
         Delayer::Deferred.when(
             users_dict,
-            Thread.new { @client.channels_history(channel: channel.id)['messages'] }
+            Thread.new {
+              history = @client.channels_history(channel: channel.id)
+              Delayer::Deferred.fail(history) unless history['ok']
+              history['messages']
+            }
         ).next { |users, histories|
           histories.select { |history|
             users.has_key?(history['user'])
