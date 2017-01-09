@@ -13,6 +13,8 @@ $ mkdir -p ~/.mikutter/plugin
 $ cd ~/.mikutter/plugin
 $ git clone https://github.com/Na0ki/mikutter_slack.git slack
 ```
+
+
 ## 認証
 * 認証の方法（OAuth）
     1. slackの設定を開き、「認証する」ボタンをクリックします。
@@ -43,10 +45,14 @@ $ git clone https://github.com/Na0ki/mikutter_slack.git slack
 * [mikutter_slack Wiki](https://github.com/Na0ki/mikutter_slack/wiki)
 
 
-# システム要件
+## システム要件
 *要件を満たしているなら動くとは言っていない*
 
 | name      |      version  |
 |:----------|--------------:|
 |mikutter   |         3.5.0 |
 |ruby       |         2.3.0 |
+
+
+## ライセンス
+[MIT LICENSE](/LICENSE)
