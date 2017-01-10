@@ -3,7 +3,7 @@ require 'slack'
 require 'httpclient'
 require_relative 'model'
 require_relative 'api'
-require_relative 'environment'
+require_relative 'config/environment'
 
 Plugin.create(:slack) do
 
@@ -24,17 +24,6 @@ Plugin.create(:slack) do
   end
 
 
-  def image(display_url)
-    connection = HTTPClient.new
-    img = connection.get_content(display_url,
-                                 'Authorization' => "Bearer #{UserConfig['slack_token']}")
-    unless img.empty?
-      p img
-      img
-    end
-  end
-
-
   on_slack_auth do
     Plugin::Slack::API::Auth.oauth.next { |_|
       api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
@@ -52,8 +41,6 @@ Plugin.create(:slack) do
     # Slackにメッセージの投稿
     api.post_message(channel, message).next { |res|
       notice "Slack:#{channel}に投稿しました: #{res}"
-      # TODO: slack_gui側で下記activityを実行できるようにする
-      # activity :slack, "Slack:#{channel}に投稿しました: #{res}"
     }.trap { |e|
       error "[#{self.class.to_s}] Slack:#{channel}への投稿に失敗しました: #{e}"
     }

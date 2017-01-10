@@ -5,7 +5,7 @@ require 'cgi'
 require 'json'
 require 'httpclient'
 require 'webrick'
-require_relative '../environment'
+require_relative '../config/environment'
 
 module Plugin::Slack
   module API
@@ -29,26 +29,24 @@ module Plugin::Slack
               redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI,
               state: 'mikutter_slack'
           }.to_hash
-          client.get('https://slack.com/oauth/authorize', :query => query, 'Content-Type' => 'application/json')
+          client.get(Plugin::Slack::Environment::SLACK_AUTHORIZE_URI, :query => query, 'Content-Type' => 'application/json')
         }.next { |response|
           Delayer::Deferred.fail(response) unless (response.status_code == 302)
           # OAuth認証用ページへのリダイレクトURL
-          oauth_redirect_uri = response.header['location'][0]
-          Plugin.call(:open, "https://slack.com#{URI.decode(oauth_redirect_uri)}")
+          uri = redirect_uri(response.header['location'][0])
+          # ブラウザで認証ページを開く
+          Plugin.call(:open, uri)
           Thread.new {
-            config = {
-                :DocumentRoot => File.join(__dir__, '../www/'),
-                :BindAddress => 'localhost',
-                :Port => 8080
-            }
-            @server = WEBrick::HTTPServer.new(config)
+            # WebRickでOAuthリダイレクト待ち受け
+            @server = WEBrick::HTTPServer.new(Plugin::Slack::Environment::SLACK_SERVER_CONFIG)
             @server.mount_proc('/') do |_, res|
               Delayer::Deferred.fail(res) unless res.status == 200
               query = CGI.parse(res.request_uri.query)
               # ローカルのHTMLを表示
-              res.body = open(File.join(__dir__, '../www/', 'index.html'))
+              res.body = open(File.join(Plugin::Slack::Environment::SLACK_DOCUMENT_ROOT, 'index.html'))
               res.content_type = 'text/html'
               res.chunked = true
+
               # アクセストークンの取得
               self.oauth_access(query['code'][0]).next { |token|
                 @server.shutdown
@@ -56,10 +54,7 @@ module Plugin::Slack
             end
             trap('INT') { @server.shutdown }
             @server.start
-          }.trap { |e|
-            error e
-            @server.shutdown
-          }
+          }.trap { |e| error e }
         }
       end
 
@@ -87,7 +82,7 @@ module Plugin::Slack
               code: c,
               redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI
           }.to_hash
-          client.get('https://slack.com/api/oauth.access', :query => query, 'Content-Type' => 'application/json')
+          client.get(Plugin::Slack::Environment::SLACK_OAUTH_ACCESS_URI, :query => query, 'Content-Type' => 'application/json')
         }.next { |response|
           Delayer::Deferred.fail(response) unless response.status_code == 200
           result = JSON.parse(response.body, symbolize_names: true)
@@ -95,6 +90,11 @@ module Plugin::Slack
           notice "scope: #{result[:scope]}, user_id: #{result[:user_id]}, team_name: #{result[:team_name]}, team_id: #{result[:team_id]}"
           UserConfig['slack_token'] = result[:access_token]
         }
+      end
+
+
+      def self.redirect_uri(uri)
+        "https://slack.com#{URI.decode(uri)}"
       end
 
     end
