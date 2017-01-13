@@ -9,6 +9,7 @@ module Plugin::Slack
 
     field.string :id, required: true
     field.string :name, required: true
+    field.has :team, Plugin::Slack::Team, required: true
 
     def idname
       name
@@ -16,6 +17,10 @@ module Plugin::Slack
 
     def profile_image_url
       self[:profile][:image_48]
+    end
+
+    def perma_link
+      Retriever::URI("https://#{team.domain}.slack.com/team/#{name}")
     end
 
     def inspect

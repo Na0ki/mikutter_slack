@@ -29,7 +29,11 @@ module Plugin::Slack
       # ユーザーリストを取得
       # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
       def users
-        Thread.new { @client.users_list['members'].map { |m| Plugin::Slack::User.new(m.symbolize) } }
+        Delayer::Deferred.when(Thread.new { @client.users_list['members'] }, team).next do |user_list, a_team|
+          user_list.map do |m|
+            Plugin::Slack::User.new(m.symbolize.merge(team: a_team))
+          end
+        end
       end
 
       # ユーザーリストを取得する。
