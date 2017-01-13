@@ -19,6 +19,7 @@ module Plugin::Slack
     field.string :text, required: true
     field.time   :created
     field.string :team, required: true
+    field.string :ts, required: true
 
     entity_class Retriever::Entity::URLEntity
     entity_class Plugin::Slack::Entity::MessageEntity
