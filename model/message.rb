@@ -34,6 +34,10 @@ module Plugin::Slack
       channel.team
     end
 
+    def perma_link
+      Retriever::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.gsub('.','')}")
+    end
+
     def inspect
       "#{self.class.to_s}(channel=#{channel.to_s}, user=#{user.to_s})"
     end
