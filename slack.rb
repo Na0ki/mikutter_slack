@@ -65,7 +65,7 @@ Plugin.create(:slack) do
         :program_name => _('%s' % Plugin::Slack::Environment::NAME),
         :copyright => _('2016-%s Naoki Maeda') % '2017',
         :version => Plugin::Slack::Environment::VERSION,
-        :comments => _("サードパーティー製Slackクライアントのデファクトスタンダードを目指すmikutterプラグイン。\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
+        :comments => _("サードパーティー製Slackクライアントの標準を夢見るmikutterプラグイン。\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
         :license => (file_get_contents('./LICENSE') rescue nil),
         :website => _('https://github.com/Na0ki/mikutter_slack.git'),
         :authors => %w(ahiru3net toshi_a),
