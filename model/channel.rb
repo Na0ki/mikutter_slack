@@ -22,6 +22,10 @@ module Plugin::Slack
       ['slack', team.name, name]
     end
 
+    def history
+      team.api.channel_history(self)
+    end
+
     def perma_link
       Retriever::URI("https://#{team.domain}.slack.com/archives/#{name}/")
     end
