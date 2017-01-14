@@ -89,6 +89,10 @@ module Plugin::Slack
       id_detector(emojis, emoji_name)
     end
 
+    def perma_link
+      Retriever::URI("https://#{domain}.slack.com/")
+    end
+
     private
 
     def id_detector(defer, id)

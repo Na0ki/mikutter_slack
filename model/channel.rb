@@ -22,6 +22,10 @@ module Plugin::Slack
       ['slack', team.name, name]
     end
 
+    def perma_link
+      Retriever::URI("https://#{team.domain}.slack.com/archives/#{name}/")
+    end
+
     def inspect
       "#{self.class.to_s}(id=#{id}, name=#{name})"
     end

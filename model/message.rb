@@ -19,6 +19,7 @@ module Plugin::Slack
     field.string :text, required: true
     field.time   :created
     field.string :team, required: true
+    field.string :ts, required: true
 
     entity_class Retriever::Entity::URLEntity
     entity_class Plugin::Slack::Entity::MessageEntity
@@ -31,6 +32,10 @@ module Plugin::Slack
     # @return [Plugin::Slack::Team] チーム
     def team
       channel.team
+    end
+
+    def perma_link
+      Retriever::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.gsub('.','')}")
     end
 
     def inspect
