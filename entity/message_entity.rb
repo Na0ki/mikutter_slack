@@ -37,8 +37,13 @@ module Plugin::Slack
         filter(/<(!.+)>/, generator: -> s {
           s.merge(face: unescape(s[:face]))
         }).
-        filter(/<(#(C.+)\|(.+))>/, generator: -> s {
-          s.merge(face: unescape(s[:face]))
+        filter(/<#C.+\|.+>/, generator: -> s {
+                 match = /<#(C.+)\|(.+)>/.match(s[:face])
+                 s[:message].team.channel(match[1]).next{|c|
+                   s[:message].entity.add(s.merge(face: unescape(s[:face]),
+                                                  open: c))
+                 }
+                 s.merge(face: unescape(s[:face]))
         }).
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
           if s[:url] =~ /\|/
