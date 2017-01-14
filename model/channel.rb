@@ -3,6 +3,8 @@
 module Plugin::Slack
 
   class Channel < Retriever::Model
+    register :slack_channel, name: "Slack Channel"
+
     field.string :id, required: true
     field.string :name, required: true
 
