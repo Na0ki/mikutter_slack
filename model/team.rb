@@ -93,20 +93,20 @@ module Plugin::Slack
       Retriever::URI("https://#{domain}.slack.com/")
     end
 
-    private
-
-    def id_detector(defer, id)
-      defer.next { |list|
-        list.find { |o| o.id == id } or Delayer::Deferred.fail(:id_notfound)
-      }
-    end
-
     def api
       self[:api]
     end
 
     def inspect
       "#{self.class.to_s}(id=#{id}, name=#{name})"
+    end
+
+    private
+
+    def id_detector(defer, id)
+      defer.next { |list|
+        list.find { |o| o.id == id } or Delayer::Deferred.fail(:id_notfound)
+      }
     end
   end
 end
