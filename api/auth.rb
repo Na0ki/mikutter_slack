@@ -94,7 +94,11 @@ module Plugin::Slack
 
 
       def self.redirect_uri(uri)
-        "https://slack.com#{URI.decode(uri)}"
+        if uri.include?('https://slack.com')
+          URI.decode(uri)
+        else
+          "https://slack.com#{URI.decode(uri)}"
+        end
       end
 
     end
