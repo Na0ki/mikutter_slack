@@ -12,6 +12,7 @@ mikutter で Slack が使えてしまうやつ（を目指してます）
 $ mkdir -p ~/.mikutter/plugin
 $ cd ~/.mikutter/plugin
 $ git clone https://github.com/Na0ki/mikutter_slack.git slack
+$ bundle install
 ```
 
 
