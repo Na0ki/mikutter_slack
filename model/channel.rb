@@ -3,6 +3,8 @@
 module Plugin::Slack
 
   class Channel < Retriever::Model
+    register :slack_channel, name: "Slack Channel"
+
     field.string :id, required: true
     field.string :name, required: true
 
@@ -20,6 +22,10 @@ module Plugin::Slack
 
     def datasource_name
       ['slack', team.name, name]
+    end
+
+    def history
+      team.api.channel_history(self)
     end
 
     def perma_link

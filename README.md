@@ -7,12 +7,19 @@ mikutter で Slack が使えてしまうやつ（を目指してます）
 
 
 ## インストール方法
-以下のコマンドをターミナルで実行し、mikutterを再起動してください。
-```
-$ mkdir -p ~/.mikutter/plugin
-$ cd ~/.mikutter/plugin
-$ git clone https://github.com/Na0ki/mikutter_slack.git slack
-```
+1. 以下のコマンドをターミナルで実行してください。
+    ```
+    $ mkdir -p ~/.mikutter/plugin
+    $ cd ~/.mikutter/plugin
+    $ git clone https://github.com/Na0ki/mikutter_slack.git slack
+    ```
+
+1. Gemに依存しているので、mikutterのディレクトリにいき、以下のコマンドを実行してください。
+    ```
+    $ bundle install
+    ```
+
+1. mikutterを再起動してください。
 
 
 ## 認証
