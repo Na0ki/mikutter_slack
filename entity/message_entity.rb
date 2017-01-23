@@ -57,17 +57,22 @@ module Plugin::Slack
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
           if s[:url] =~ /\|/
             matched = /<(@(?<id>U.+)\|(?<name>.+))>/.match(s[:face])
-            user_id = matched[:id]
+            name = matched[:name]
+            id = matched[:id]
           else
             matched = /<@(?<id>U.+)>/.match(s[:face])
-            user_id = matched[:id]
-            s[:message].team.user(user_id).next { |user|
+            id = matched[:id]
+            name = "loading(#{id})"
+            s[:message].team.user(id).next { |user|
               uri = Retriever::URI(URI.encode("https://#{s[:message].team.name}.slack.com/team/#{user.name}")).to_uri.to_s
               s[:message].entity.add(s.merge(open: uri, url: uri, face: "@#{user.name}"))
-            }.trap { |e| error e }
+            }.trap { |e|
+              error e
+              name = "error(#{id})"
+            }
           end
-          uri = Retriever::URI("https://#{s[:message].team.name}.slack.com/team/#{user_id}").to_uri.to_s
-          s.merge(open: uri, url: uri, face: "error(#{user_id})")
+          uri = Retriever::URI("https://#{s[:message].team.name}.slack.com/team/#{id}").to_uri.to_s
+          s.merge(open: uri, url: uri, face: name)
         }).
         #
         # 絵文字を表す
