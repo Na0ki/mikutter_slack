@@ -5,39 +5,45 @@ module Plugin::Slack
   module Entity
 
     MessageEntity = Retriever::Entity::RegexpEntity.
-        filter(/<(https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)(\.jpg|\.jpeg|\.gif|\.png|\.bmp)(.*|\|[\w\-]+))>/, generator: -> s {
-          # FIXME: 画像を開く際にはリクエストヘッダーをつける必要があるが、その処理を追加出来ていない
-          m = /<(.+)>/.match(s[:url])[1]
+        #
+        # Slackの画像URLのパース
+        # そのままのURLだと, 画像を含んだHTMLが返ってくるため画像のみのURLに変換する
+        # example:
+        # before -> https://teamname.slack.com/files/username/random_id/filename
+        # after -> https://files.slack.com/files-pri/team_id-random_id/filename
+        # FIXME: 画像を開く際にはリクエストヘッダーをつける必要があるが、その処理を追加出来ていない
+        filter(/<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/[\w\-]+\/.+(\.(jpg|jpeg|gif|png|bmp)).*>/, generator: -> s {
           if s[:url] =~ /\|/
-            n = /https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)/.match(m&.split('|')[0])
-            face = m.split('|')[1] # 表示名
+            matched = /<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<name>.+)\|(?<face>.+)>/.match(s[:url])
           else
-            n = /https:\/\/.+\.slack\.com\/files\/[\w\-]+\/([\w\-]+)\/(.+)/.match(m)
-            face = m # 表示名（元URL）
+            matched = /<(?<face>https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<name>.+))>/.match(s[:url])
           end
-          url = Retriever::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{n[1]}/#{n[2]}")).to_uri.to_s
-          s.merge(open: url,
-                  face: face,
-                  url: url)
+          # 画像のURLを生成
+          url = Retriever::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{matched[:id]}/#{matched[:name]}")).to_uri.to_s
+          s.merge(open: url, face: matched[:face], url: url)
         }).
+        #
+        # その他の外部リンク
+        # httpのスキーマにマッチする
         filter(/<https?:\/\/.+>/, generator: -> s {
-          orig = /<(.+)>/.match(s[:face])[1]
           if s[:url] =~ /\|/
-            n = orig&.split('|')
-            url = URI.encode(n[0])
-            face = n[1]
+            matched = /<(?<url>https?:\/\/.+)\|(?<face>.+)>/.match(s[:url])
+            face = matched[:face]
           else
-            url = URI.encode(orig)
-            face = orig
+            matched = /<(?<url>https?:\/\/.+)>/.match(s[:url])
+            face = matched[:url]
           end
-          s.merge(open: url,
-                  face: face,
-                  url: url)
+          s.merge(open: matched[:url], face: face, url: matched[:url])
         }).
-        filter(/<(!.+)>/, generator: -> s {
+        filter(/<!.+>/, generator: -> s {
           s.merge(face: unescape(s[:face]))
         }).
-        filter(/<(#(C.+)\|(.+))>/, generator: -> s {
+        filter(/<#C.+>/, generator: -> s {
+          matched = /<#(C.+)\|(.+)>/.match(s[:face])
+          s[:message].team.channel(matched[1]).next { |c|
+            s[:message].entity.add(s.merge(face: unescape(s[:face]),
+                                           open: c))
+          }
           s.merge(face: unescape(s[:face]))
         }).
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
