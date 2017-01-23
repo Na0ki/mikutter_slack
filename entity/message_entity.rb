@@ -39,10 +39,9 @@ module Plugin::Slack
           s.merge(face: unescape(s[:face]))
         }).
         filter(/<#C.+>/, generator: -> s {
-          matched = /<#(C.+)\|(.+)>/.match(s[:face])
-          s[:message].team.channel(matched[1]).next { |c|
-            s[:message].entity.add(s.merge(face: unescape(s[:face]),
-                                           open: c))
+          matched = /<#(?<id>C.+)\|.+>/.match(s[:face])
+          s[:message].team.channel(matched[:id]).next { |c|
+            s[:message].entity.add(s.merge(face: unescape(s[:face]), open: c))
           }
           s.merge(face: unescape(s[:face]))
         }).
@@ -72,6 +71,7 @@ module Plugin::Slack
                   url: 'http://totori.dip.jp/')
         }).
         filter(/<(.*)>/, generator: -> s {
+          p s[:face]
           s.merge(face: unescape(s[:face]))
         })
 
