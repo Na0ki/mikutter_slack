@@ -43,7 +43,7 @@ module Plugin::Slack
                 Plugin.call :extract_receive_message, channel.datasource_slug, messages
               }.trap { |e| e.inspect }
             end
-          }
+          }.trap { |e| error e }
         }.trap { |e| error e }
       }.trap { |e|
         # 認証失敗時のエラーハンドリング
@@ -86,6 +86,11 @@ module Plugin::Slack
       # 接続時に呼ばれる
       @realtime.on :hello do
         connected
+      end
+
+
+      @realtime.on :open do |data|
+        p data
       end
 
       # メッセージ書き込み時に呼ばれる
