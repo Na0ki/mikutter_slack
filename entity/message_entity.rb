@@ -8,10 +8,14 @@ module Plugin::Slack
         #
         # Slackの画像URLのパース
         # そのままのURLだと, 画像を含んだHTMLが返ってくるため画像のみのURLに変換する
-        # example:
-        # before -> https://teamname.slack.com/files/username/random_id/filename
-        # after -> https://files.slack.com/files-pri/team_id-random_id/filename
+        # その他はそのままリンクにする
+        # また, <https://teamname.slack.com/...|label> といった形式の場合は, faceをlabelにする
+        # ex:
+        #   before -> https://teamname.slack.com/files/username/random_id/filename
+        #   after -> https://files.slack.com/files-pri/team_id-random_id/filename
+        #
         # FIXME: 画像を開く際にはリクエストヘッダーをつける必要があるが、その処理を追加出来ていない
+        #
         filter(/<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/[\w\-]+\/.+(\.(jpg|jpeg|gif|png|bmp)).*>/, generator: -> s {
           if s[:url] =~ /\|/
             matched = /<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<name>.+)\|(?<face>.+)>/.match(s[:url])
@@ -22,9 +26,6 @@ module Plugin::Slack
           url = Retriever::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{matched[:id]}/#{matched[:name]}")).to_uri.to_s
           s.merge(open: url, face: matched[:face], url: url)
         }).
-        #
-        # その他の外部リンク
-        # httpのスキーマにマッチする
         filter(/<https?:\/\/.+>/, generator: -> s {
           if s[:url] =~ /\|/
             matched = /<(?<url>https?:\/\/.+)\|(?<face>.+)>/.match(s[:url])

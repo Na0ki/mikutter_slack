@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 require_relative '../entity/message_entity'
-require_relative '../entity/user_entity'
 require_relative '../model/user'
 require_relative '../model/channel'
 
