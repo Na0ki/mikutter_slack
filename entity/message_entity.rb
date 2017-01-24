@@ -10,12 +10,12 @@ module Plugin::Slack
         # そのままのURLだと, 画像を含んだHTMLが返ってくるため画像のみのURLに変換する
         # その他はそのままリンクにする
         # また, <https://teamname.slack.com/...|label> といった形式の場合は, faceをlabelにする
-        # ex:
+        #
+        # @example
         #   before -> https://teamname.slack.com/files/username/random_id/filename
         #   after -> https://files.slack.com/files-pri/team_id-random_id/filename
         #
         # FIXME: 画像を開く際にはリクエストヘッダーをつける必要があるが、その処理を追加出来ていない
-        #
         filter(/<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/[\w\-]+\/.+(\.(jpg|jpeg|gif|png|bmp)).*>/, generator: -> s {
           if s[:url] =~ /\|/
             matched = /<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<name>.+)\|(?<face>.+)>/.match(s[:url])
@@ -54,7 +54,8 @@ module Plugin::Slack
         }).
         #
         # ユーザーを表す
-        # ex. @hoge -> <user_id> または <user_id|hoge>
+        # @example
+        #   @hoge -> <user_id> または <user_id|hoge>
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
           if s[:url] =~ /\|/
             matched = /<(@(?<id>U.+)\|(?<name>.+))>/.match(s[:face])
@@ -77,7 +78,8 @@ module Plugin::Slack
         }).
         #
         # 絵文字を表す
-        # :emoji_id:
+        # @example
+        #   :emoji_id: -> emoji_name
         filter(/:[\w\-]+:/, generator: -> s {
           matched = /:(?<name>[\w\-]+):/.match(s[:face])
           s.merge(open: 'http://totori.dip.jp/', face: matched[:name], url: 'http://totori.dip.jp/')

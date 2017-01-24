@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 require 'slack'
-require 'httpclient'
 require_relative 'model'
 require_relative 'api'
 require_relative 'config/environment'
@@ -24,6 +23,8 @@ Plugin.create(:slack) do
   end
 
 
+  # 認証をブロードキャストする
+  # @example Plugin.call(:slack_auth)
   on_slack_auth do
     Plugin::Slack::API::Auth.oauth.next { |_|
       api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
@@ -36,7 +37,8 @@ Plugin.create(:slack) do
   end
 
 
-  # 投稿
+  # 投稿をブロードキャストする
+  # @example Plugin.call(:slack_post, channel_name, message)
   on_slack_post do |channel, message|
     # Slackにメッセージの投稿
     api.post_message(channel, message).next { |res|
