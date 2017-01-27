@@ -18,12 +18,12 @@ module Plugin::Slack
         # FIXME: 画像を開く際にはリクエストヘッダーをつける必要があるが、その処理を追加出来ていない
         filter(/<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/[\w\-]+\/.+(\.(jpg|jpeg|gif|png|bmp)).*>/, generator: -> s {
           if s[:url] =~ /\|/
-            matched = /<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<name>.+)\|(?<face>.+)>/.match(s[:url])
+            matched = /<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<filename>.+)\|(?<face>.+)>/.match(s[:url])
           else
-            matched = /<(?<face>https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<name>.+))>/.match(s[:url])
+            matched = /<(?<url>https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<filename>.+)$|\|(?<face>.+))>/.match(s[:url])
           end
           # 画像のURLを生成
-          url = Retriever::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{matched[:id]}/#{matched[:name]}")).to_uri.to_s
+          url = Retriever::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{matched[:id]}/#{matched[:filename]}")).to_uri.to_s
           s.merge(open: url, face: matched[:face], url: url)
         }).
         filter(/<https?:\/\/.+>/, generator: -> s {
