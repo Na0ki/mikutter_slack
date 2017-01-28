@@ -29,7 +29,7 @@ module Plugin::Slack
         filter(/<https?:\/\/.+>/, generator: -> s {
           if s[:url] =~ /\|/
             matched = /<(?<url>https?:\/\/.+)\|(?<face>.+)>/.match(s[:url])
-            face = matched[:url]
+            face = matched[:face]
           else
             matched = /<(?<url>https?:\/\/.+)>/.match(s[:url])
             face = matched[:url]
