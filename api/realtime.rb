@@ -76,9 +76,7 @@ module Plugin::Slack
                                                ts: data['ts'])
           Plugin.call(:extract_receive_message, channel.datasource_slug, [message])
         }
-      }.trap { |err|
-        error err
-      }
+      }.trap { |e| error e }
     end
 
 
