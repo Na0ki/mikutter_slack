@@ -38,13 +38,13 @@ module Plugin::Slack
 
         slack_api.team.next { |team| # チームの取得
           team.channels.next { |channels| # チームのチャンネルリストを取得
-            channels.each do |channel|
+            Delayer::Deferred.when(*channels.map { |channel|
               slack_api.channel_history(channel).next { |messages|
                 Plugin.call :extract_receive_message, channel.datasource_slug, messages
-              }.trap { |e| e.inspect }
-            end
-          }.trap { |e| error e }
-        }.trap { |e| error e }
+              }
+            })
+          }
+        }
       }.trap { |e|
         # 認証失敗時のエラーハンドリング
         error e
