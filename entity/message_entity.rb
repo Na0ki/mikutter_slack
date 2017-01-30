@@ -48,7 +48,7 @@ module Plugin::Slack
         #   @hoge -> <user_id> または <user_id|hoge>
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
           matched = /<(@(?<id>U.+?)(?:\|(?<name>.+))?)>/.match(s[:face])
-          name = matched[:name] || "loading(#{id})"
+          name = matched[:name] || "loading(#{matched[:id]})"
 
           if matched[:name].nil?
             s[:message].team.user(matched[:id]).next { |user|
