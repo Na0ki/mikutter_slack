@@ -16,27 +16,27 @@ module Plugin::Slack
         #   after -> https://files.slack.com/files-pri/team_id-random_id/filename
         #
         # FIXME: 画像を開く際にはリクエストヘッダーをつける必要があるが、その処理を追加出来ていない
-        filter(/<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/[\w\-]+\/.+(\.(jpg|jpeg|gif|png|bmp)).*>/, generator: -> s {
+        filter(/<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/[\w\-]+\/.+(\.(jpg|jpeg|gif|png|bmp)).*?>/, generator: -> s {
           matched = /<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<filename>.+?)(?:\|(?<face>.+))?>/.match(s[:url])
           # 画像のURLを生成
           url = Retriever::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{matched[:id]}/#{matched[:filename]}")).to_uri.to_s
           s.merge(open: url, face: matched[:face] || url, url: url)
         }).
-        filter(/<https?:\/\/.+>/, generator: -> s {
+        filter(/<https?:\/\/.+?>/, generator: -> s {
           matched = /<(?<url>https?:\/\/.+?)(?:\|(?<face>.+))?>/.match(s[:url])
           s.merge(open: matched[:url], face: matched[:face] || matched[:url], url: matched[:url])
         }).
         #
         # @everyone や @here などの特殊コマンド
         # <!everyone> や <!here> といったフォーマット
-        filter(/<!.+>/, generator: -> s {
+        filter(/<!.+?>/, generator: -> s {
           s.merge(face: unescape(s[:face]))
         }).
         #
         # チャンネルのリンクを表す
         # ex. #channel -> <channel_id>
-        filter(/<#C.+>/, generator: -> s {
-          matched = /<#(?<id>C.+)\|.+>/.match(s[:face])
+        filter(/<#C.+?>/, generator: -> s {
+          matched = /<#(?<id>C.+?)\|.+?>/.match(s[:face])
           s[:message].team.channel(matched[:id]).next { |c|
             s[:message].entity.add(s.merge(face: unescape(s[:face]), open: c))
           }
@@ -68,7 +68,7 @@ module Plugin::Slack
         # @example
         #   :emoji_id: -> emoji_name
         filter(/:[\w\-]+:/, generator: -> s {
-          matched = /:(?<name>[\w\-]+):/.match(s[:face])
+          matched = /:(?<name>[\w\-]+)?:/.match(s[:face])
           s.merge(open: 'http://totori.dip.jp/', face: matched[:name], url: 'http://totori.dip.jp/')
         }).
         #
