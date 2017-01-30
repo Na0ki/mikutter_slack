@@ -10,8 +10,7 @@ module Plugin::Slack
   class Message < Retriever::Model
     include Retriever::Model::MessageMixin
 
-    register :slack_message,
-             name: 'Slack Message'
+    register :slack_message, name: 'Slack Message'
 
     field.has :channel, Plugin::Slack::Channel, required: true
     field.has :user, Plugin::Slack::User, required: true

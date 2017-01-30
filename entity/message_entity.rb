@@ -23,7 +23,7 @@ module Plugin::Slack
           s.merge(open: url, face: matched[:face] || url, url: url)
         }).
         filter(/<https?:\/\/.+>/, generator: -> s {
-          matched = /<(?<url>https?:\/\/.+?)(\|(?<face>.+))?>/.match(s[:url])
+          matched = /<(?<url>https?:\/\/.+?)(?:\|(?<face>.+))?>/.match(s[:url])
           s.merge(open: matched[:url], face: matched[:face] || matched[:url], url: matched[:url])
         }).
         #
@@ -47,23 +47,20 @@ module Plugin::Slack
         # @example
         #   @hoge -> <user_id> または <user_id|hoge>
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
-          if s[:url] =~ /\|/
-            matched = /<(@(?<id>U.+)\|(?<name>.+))>/.match(s[:face])
-            name = matched[:name]
-            id = matched[:id]
-          else
-            matched = /<@(?<id>U.+)>/.match(s[:face])
-            id = matched[:id]
-            name = "loading(#{id})"
-            s[:message].team.user(id).next { |user|
+          matched = /<(@(?<id>U.+?)(?:\|(?<name>.+))?)>/.match(s[:face])
+          name = matched[:name] || "loading(#{id})"
+
+          if matched[:name].nil?
+            s[:message].team.user(matched[:id]).next { |user|
               uri = Retriever::URI(URI.encode("https://#{s[:message].team.name}.slack.com/team/#{user.name}")).to_uri.to_s
               s[:message].entity.add(s.merge(open: uri, url: uri, face: "@#{user.name}"))
             }.trap { |e|
               error e
-              name = "error(#{id})"
+              name = "error(#{matched[:id]})"
             }
           end
-          uri = Retriever::URI("https://#{s[:message].team.name}.slack.com/team/#{id}").to_uri.to_s
+
+          uri = Retriever::URI("https://#{s[:message].team.name}.slack.com/team/#{matched[:id]}").to_uri.to_s
           s.merge(open: uri, url: uri, face: name)
         }).
         #
