@@ -23,14 +23,8 @@ module Plugin::Slack
           s.merge(open: url, face: matched[:face] || url, url: url)
         }).
         filter(/<https?:\/\/.+>/, generator: -> s {
-          if s[:url] =~ /\|/
-            matched = /<(?<url>https?:\/\/.+)\|(?<face>.+)>/.match(s[:url])
-            face = matched[:face]
-          else
-            matched = /<(?<url>https?:\/\/.+)>/.match(s[:url])
-            face = matched[:url]
-          end
-          s.merge(open: matched[:url], face: face, url: matched[:url])
+          matched = /<(?<url>https?:\/\/.+?)(\|(?<face>.+))?>/.match(s[:url])
+          s.merge(open: matched[:url], face: matched[:face] || matched[:url], url: matched[:url])
         }).
         #
         # @everyone や @here などの特殊コマンド
