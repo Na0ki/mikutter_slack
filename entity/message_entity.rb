@@ -28,9 +28,10 @@ module Plugin::Slack
         }).
         #
         # @everyone や @here などの特殊コマンド
-        # <!everyone> や <!here> といったフォーマット
+        # <!everyone> や <!here|@here> といったフォーマット
         filter(/<!.+?>/, generator: -> s {
-          s.merge(face: unescape(s[:face]))
+          matched = /<!(?<id>[A-Za-z]+?)(?:\|(?<name>[!-~]+?))?>/.match(s[:face])
+          s.merge(face: matched[:name] || "@#{matched[:id]}")
         }).
         #
         # チャンネルのリンクを表す
