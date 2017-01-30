@@ -12,7 +12,7 @@ module Plugin::Slack
         # また, <https://teamname.slack.com/...|label> といった形式の場合は, faceをlabelにする
         #
         # @example
-        #   before -> https://teamname.slack.com/files/username/random_id/filename
+        #   before -> <https://teamname.slack.com/files/username/random_id/filename>
         #   after -> https://files.slack.com/files-pri/team_id-random_id/filename
         #
         # FIXME: 画像を開く際にはリクエストヘッダーをつける必要があるが、その処理を追加出来ていない
@@ -22,20 +22,33 @@ module Plugin::Slack
           url = Retriever::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{matched[:id]}/#{matched[:filename]}")).to_uri.to_s
           s.merge(open: url, face: matched[:face] || url, url: url)
         }).
+        #
+        # その他HTTPなURLのパース(http, https)
+        # また, <https://sample.example.com/...|label> といった形式の場合は, faceをlabelにする
+        #
+        # @example
+        #   before -> <https://github.com>
+        #   after -> https://github.com
         filter(/<https?:\/\/.+?>/, generator: -> s {
           matched = /<(?<url>https?:\/\/.+?)(?:\|(?<face>.+))?>/.match(s[:url])
           s.merge(open: matched[:url], face: matched[:face] || matched[:url], url: matched[:url])
         }).
         #
-        # @everyone や @here などの特殊コマンド
+        # @everyone や @here などの特殊コマンドのパース
         # <!everyone> や <!here|@here> といったフォーマット
+        #
+        # @example
+        #   <!here|@here> -> @here
         filter(/<!.+?>/, generator: -> s {
           matched = /<!(?<id>[A-Za-z]+?)(?:\|(?<name>[!-~]+?))?>/.match(s[:face])
           s.merge(face: matched[:name] || "@#{matched[:id]}")
         }).
         #
-        # チャンネルのリンクを表す
-        # ex. #channel -> <channel_id>
+        # チャンネル名のパース
+        # チャンネルIDは大文字のCをプレフィックスに持つ
+        #
+        # @example
+        #   <#channel_id|channel_name> -> #channel_name
         filter(/<#C.+?>/, generator: -> s {
           matched = /<#(?<id>C.+?)\|.+?>/.match(s[:face])
           s[:message].team.channel(matched[:id]).next { |c|
@@ -44,7 +57,9 @@ module Plugin::Slack
           s.merge(face: unescape(s[:face]))
         }).
         #
-        # ユーザーを表す
+        # ユーザーのパース
+        # ユーザーIDは大文字のUをプレフィックスに持つ
+        #
         # @example
         #   @hoge -> <user_id> または <user_id|hoge>
         filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
@@ -65,9 +80,11 @@ module Plugin::Slack
           s.merge(open: uri, url: uri, face: name)
         }).
         #
-        # 絵文字を表す
+        # 絵文字をパースする
+        # TODO: Emoji IDから絵文字を取得しentityに情報として追加する
+        #
         # @example
-        #   :emoji_id: -> emoji_name
+        #   :emoji_id: -> emoji_id
         filter(/:[\w\-]+:/, generator: -> s {
           matched = /:(?<name>[\w\-]+)?:/.match(s[:face])
           s.merge(open: 'http://totori.dip.jp/', face: matched[:name], url: 'http://totori.dip.jp/')
