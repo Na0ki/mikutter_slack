@@ -92,7 +92,7 @@ module Plugin::Slack
         #
         # 残り
         filter(/<(.*)>/, generator: -> s {
-          p s[:face]
+          error "Did not match any regex: #{s[:face]}"
           s.merge(face: unescape(s[:face]))
         })
 
