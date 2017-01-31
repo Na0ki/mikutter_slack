@@ -90,7 +90,8 @@ module Plugin::Slack
           s.merge(open: 'http://totori.dip.jp/', face: matched[:name], url: 'http://totori.dip.jp/')
         }).
         #
-        # 残り
+        # 上記までの正規表現にマッチしなかった全ての <something> を取得
+        # うまくパース出来ていないということになるので、error出力している
         filter(/<(.*)>/, generator: -> s {
           error "Did not match any regex: #{s[:face]}"
           s.merge(face: unescape(s[:face]))
