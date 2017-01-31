@@ -4,7 +4,7 @@ require 'slack'
 module Plugin::Slack
   module API
     class Channel
-      # FIXME: 形だけprivateチャンネルを取得できるようなメソッドに変更. 後日動くか検証する.（足らない部分に関しては api.rb 参照）
+      # TODO: 形だけprivateチャンネルを取得できるようなメソッドに変更. 後日動くか検証する.（足らない部分に関しては api.rb 参照）
 
       # チームを取得する。
       # 一度でもTeamの取得に成功すると、二度目以降はその内容を返す
