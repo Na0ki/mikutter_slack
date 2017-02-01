@@ -2,28 +2,26 @@
 require 'slack'
 
 module Plugin::Slack
-  # class User
-  #
-  #   def initialize(client)
-  #     @client = client
-  #   end
-  #
-  #   # ユーザーリストを取得
-  #   # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
-  #   def users_list
-  #     Thread.new do
-  #       @client.users_list['members'].map { |m|
-  #         Plugin::Slack::User.new(m.symbolize)
-  #       }
-  #     end
-  #   end
-  #
-  #
-  #   def bots_list
-  #     Thread.new do
-  #       @client.bots_info
-  #     end
-  #   end
-  #
-  # end
+  module API
+
+    class Users
+
+      def initialize(client)
+        @client = client
+      end
+
+      # ユーザーリストを取得
+      # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
+      def list
+        Thread.new { @client.users_list['members'].map { |m| Plugin::Slack::User.new(m.symbolize) } }
+      end
+
+
+      def bots
+        Thread.new { @client.bots_info }
+      end
+
+    end
+
+  end
 end

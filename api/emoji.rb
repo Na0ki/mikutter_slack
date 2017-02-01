@@ -2,15 +2,20 @@
 require 'slack'
 
 module Plugin::Slack
-  class API
+  module API
+    class Emoji
 
-    # Emojiリストの取得
-    # @return [Delayer::Deferred::Deferredable] 絵文字リストを引数にcallbackするDeferred
-    # def emoji_list
-    #   Thread.new do
-    #     @client.emoji_list
-    #   end
-    # end
+      def initialize(client)
+        @client = client
+      end
+
+
+      # Emojiリストの取得
+      # @return [Delayer::Deferred::Deferredable] 絵文字リストを引数にcallbackするDeferred
+      def emoji_list
+        Thread.new { @client.emoji_list }
+      end
+    end
 
   end
 end
