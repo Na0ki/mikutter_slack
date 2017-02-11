@@ -25,9 +25,9 @@ module Plugin::Slack
           client = HTTPClient.new
           query = {
               client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
-              scope: 'client',
+              scope: Plugin::Slack::Environment::SLACK_OAUTH_SCOPE,
               redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI,
-              state: 'mikutter_slack'
+              state: Plugin::Slack::Environment::SLACK_OAUTH_STATE
           }.to_hash
           client.get(Plugin::Slack::Environment::SLACK_AUTHORIZE_URI, :query => query, 'Content-Type' => 'application/json')
         }.next { |response|

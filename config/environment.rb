@@ -17,6 +17,8 @@ module Plugin::Slack
     SLACK_OAUTH_ACCESS_URI = 'https://slack.com/api/oauth.access'
     SLACK_CLIENT_ID = '43202035347.73645008566'
     SLACK_CLIENT_SECRET = 'f395c1c55fbaa0fb0a968bbf5d7372af'
+    SLACK_OAUTH_SCOPE = 'client'
+    SLACK_OAUTH_STATE = 'mikutter_slack'
 
 
     ################################
