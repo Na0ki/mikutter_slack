@@ -2,7 +2,7 @@
 
 module Plugin::Slack
 
-  class Channel < Retriever::Model
+  class Channel < Diva::Model
     register :slack_channel, name: 'Slack Channel'
 
     field.string :id, required: true
@@ -37,7 +37,7 @@ module Plugin::Slack
     # チャンネルのリンクを返す
     # @return [String] リンク
     def perma_link
-      Retriever::URI("https://#{team.domain}.slack.com/archives/#{name}/")
+      Diva::URI("https://#{team.domain}.slack.com/archives/#{name}/")
     end
 
     def inspect

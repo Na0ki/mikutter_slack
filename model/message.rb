@@ -7,8 +7,8 @@ require_relative '../model/channel'
 # @see https://toshia.github.io/writing-mikutter-plugin/model/2016/09/30/model-messagemixin.html
 # @see https://toshia.github.io/writing-mikutter-plugin/model/2016/09/30/model-field.html
 module Plugin::Slack
-  class Message < Retriever::Model
-    include Retriever::Model::MessageMixin
+  class Message < Diva::Model
+    include Diva::Model::MessageMixin
 
     register :slack_message, name: 'Slack Message'
 
@@ -19,7 +19,7 @@ module Plugin::Slack
     field.string :team, required: true
     field.string :ts, required: true
 
-    entity_class Retriever::Entity::URLEntity
+    entity_class Diva::Entity::URLEntity
     entity_class Plugin::Slack::Entity::MessageEntity
 
     def to_show
@@ -33,9 +33,9 @@ module Plugin::Slack
     end
 
     # Messageのリンク
-    # @return [Retriever::URI] リンク
+    # @return [Diva::URI] リンク
     def perma_link
-      Retriever::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.gsub('.', '')}")
+      Diva::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.gsub('.', '')}")
     end
 
     def inspect

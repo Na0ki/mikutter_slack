@@ -4,7 +4,7 @@ require 'uri'
 module Plugin::Slack
   module Entity
 
-    MessageEntity = Retriever::Entity::RegexpEntity.
+    MessageEntity = Diva::Entity::RegexpEntity.
         #
         # Slackの画像URLのパース
         # そのままのURLだと, 画像を含んだHTMLが返ってくるため画像のみのURLに変換する
@@ -19,7 +19,7 @@ module Plugin::Slack
         filter(/<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/[\w\-]+\/.+(\.(jpg|jpeg|gif|png|bmp)).*?>/, generator: -> s {
           matched = /<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<filename>.+?)(?:\|(?<face>.+))?>/.match(s[:url])
           # 画像のURLを生成
-          url = Retriever::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{matched[:id]}/#{matched[:filename]}")).to_uri.to_s
+          url = Diva::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{matched[:id]}/#{matched[:filename]}")).to_uri.to_s
           s.merge(open: url, face: matched[:face] || url, url: url)
         }).
         #
@@ -68,7 +68,7 @@ module Plugin::Slack
 
           if matched[:name].nil?
             s[:message].team.user(matched[:id]).next { |user|
-              uri = Retriever::URI(URI.encode("https://#{s[:message].team.name}.slack.com/team/#{user.name}")).to_uri.to_s
+              uri = Diva::URI(URI.encode("https://#{s[:message].team.name}.slack.com/team/#{user.name}")).to_uri.to_s
               s[:message].entity.add(s.merge(open: uri, url: uri, face: "@#{user.name}"))
             }.trap { |e|
               error e
@@ -76,7 +76,7 @@ module Plugin::Slack
             }
           end
 
-          uri = Retriever::URI("https://#{s[:message].team.name}.slack.com/team/#{matched[:id]}").to_uri.to_s
+          uri = Diva::URI("https://#{s[:message].team.name}.slack.com/team/#{matched[:id]}").to_uri.to_s
           s.merge(open: uri, url: uri, face: name)
         }).
         #
