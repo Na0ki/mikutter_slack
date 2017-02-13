@@ -23,7 +23,7 @@ module Plugin::Slack
     entity_class Plugin::Slack::Entity::MessageEntity
 
     def to_show
-      @to_show ||= self[:text]
+      @to_show ||= self[:text].nil? ? self[:text] : self[:text].gsub(/&(gt|lt|quot|amp);/) { |_| {:gt => '>', :lt => '<', :quot => '"', :amp => '&'}[$1] }.freeze
     end
 
     # このMessageが所属するTeam
