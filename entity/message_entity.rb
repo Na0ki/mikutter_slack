@@ -72,11 +72,12 @@ module Plugin::Slack
               s[:message].entity.add(s.merge(open: uri, url: uri, face: "@#{user.name}"))
             }.trap { |e|
               error e
-              name = "error(#{matched[:id]})"
+              uri = Retriever::URI(URI.encode("https://#{s[:message].team.name}.slack.com/team/#{matched[:id]}")).to_uri.to_s
+              s[:message].entity.add(s.merge(open: uri, url: uri, face: "error(#{matched[:id]})"))
             }
           end
 
-          uri = Retriever::URI("https://#{s[:message].team.name}.slack.com/team/#{matched[:id]}").to_uri.to_s
+          uri = Retriever::URI("https://#{s[:message].team.name}.slack.com/team/#{name}").to_uri.to_s
           s.merge(open: uri, url: uri, face: name)
         }).
         #
