@@ -95,7 +95,7 @@ module Plugin::Slack
         # うまくパース出来ていないということになるので、error出力している
         filter(/<(.*)>/, generator: -> s {
           error "Did not match any regex: #{s[:face]}"
-          s.merge(face: unescape(s[:face]))
+          s
         })
 
 
