@@ -22,9 +22,7 @@ module Plugin::Slack
     entity_class Retriever::Entity::URLEntity
     entity_class Plugin::Slack::Entity::MessageEntity
 
-    def to_show
-      self[:text]
-    end
+    alias_method :description, :text
 
     # このMessageが所属するTeam
     # @return [Plugin::Slack::Team] チーム
