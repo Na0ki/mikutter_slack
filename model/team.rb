@@ -71,12 +71,12 @@ module Plugin::Slack
 
     # TODO: コメントを書く
     def emojis
-      cache = @emoji
-      if cache
-        Delayer::Deferred.new.next { cache }
-      else
-        api.team.next { |t| @emoji = t.emoji_list[:emoji].freeze }
-      end
+      # cache = @emoji
+      # if cache
+      #   Delayer::Deferred.new.next { cache }
+      # else
+      #   api.team.next { |t| @emoji = t.emoji_list[:emoji].freeze }
+      # end
     end
 
 

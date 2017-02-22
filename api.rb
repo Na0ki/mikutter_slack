@@ -19,7 +19,7 @@ module Plugin::Slack
         @realtime ||= Plugin::Slack::Realtime.new(self).start
       end
 
-      # チームを取得する。
+      # チームを取得する
       # 一度でもTeamの取得に成功すると、二度目以降はその内容を返す
       # @return [Delayer::Deferred::Deferredable] Teamを引数にcallbackするDeferred
       def team
@@ -34,7 +34,7 @@ module Plugin::Slack
         end
       end
 
-      # ユーザーリストを取得する。
+      # ユーザーリストを取得する
       # usersとの違いは、Deferredの戻り値がキーにユーザID、値にPlugin::Slack::Userを持ったHashであること。
       # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
       def users_dict
@@ -52,7 +52,7 @@ module Plugin::Slack
         }
       end
 
-      # チャンネルリストを取得する。
+      # チャンネルリストを取得する
       # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
       # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
       def channels_dict
@@ -86,13 +86,7 @@ module Plugin::Slack
       end
 
 
-      # Emojiリストの取得
-      # @return [Delayer::Deferred::Deferredable] 絵文字リストを引数にcallbackするDeferred
-      def emoji_list
-        Thread.new { @client.emoji_list }
-      end
-
-
+      # TODO: Plugin::Slack::Message に移行する
       # メッセージの投稿
       # @param [String] channel チャンネル名
       # @param [String] text 投稿メッセージ
