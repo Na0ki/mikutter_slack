@@ -17,6 +17,8 @@ module Plugin::Slack
       end
 
 
+      # ボットの情報を取得
+      # @return [Delayer::Deferred::Deferrable] チームのボットの情報を取得
       def bots
         Thread.new { @client.bots_info }
       end

@@ -20,7 +20,7 @@ module Plugin::Slack
 
       # パブリックチャンネルリスト返す
       # @return [Delayer::Deferred::Deferredable] 全てのChannelを引数にcallbackするDeferred
-      def pub_list
+      def channel_list
         Delayer::Deferred.when(
             team,
             Thread.new { @client.channels_list['channels'] }
@@ -32,7 +32,7 @@ module Plugin::Slack
       # パブリックチャンネルリストを取得する。
       # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
       # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
-      def pub_dict
+      def channel_dict
         channels.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
       end
 
@@ -40,7 +40,7 @@ module Plugin::Slack
       # @param [Plugin::Slack::Channel] channel ヒストリを取得したいChannel
       # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
-      def pub_history(channel)
+      def channel_history(channel)
         Delayer::Deferred.when(
             users_dict,
             Thread.new { @client.channels_history(channel: channel.id)['messages'] }
@@ -60,12 +60,12 @@ module Plugin::Slack
 
 
       ###################
-      # Private Channel #
+      # Group Channel #
       ###################
 
       # プライベートチャンネルリスト返す
       # @return [Delayer::Deferred::Deferredable] 全てのChannelを引数にcallbackするDeferred
-      def pvt_list
+      def grouop_list
         Delayer::Deferred.when(
             team,
             Thread.new { @client.groups_list['channels'] }
@@ -77,7 +77,7 @@ module Plugin::Slack
       # プライベートチャンネルリストを取得する。
       # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
       # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
-      def pvt_dict
+      def group_dict
         channels.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
       end
 
@@ -85,7 +85,7 @@ module Plugin::Slack
       # @param [Plugin::Slack::Channel] channel ヒストリを取得したいChannel
       # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/groups.history.md
-      def pvt_history(channel)
+      def group_history(channel)
         Delayer::Deferred.when(
             users_dict,
             Thread.new { @client.groups_history(channel: channel.id)['messages'] }
