@@ -23,8 +23,8 @@ module Plugin::Slack
       # パブリックチャンネルリストを取得する。
       # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
       # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
-      def channel_dict
-        channels.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
+      def dict
+        list.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
       end
 
       # 指定したパブリックChannelのヒストリを取得

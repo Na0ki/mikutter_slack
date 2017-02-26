@@ -47,13 +47,6 @@ module Plugin::Slack
         users.list.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
       end
 
-      # チャンネルリストを取得する
-      # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
-      # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
-      def channels_dict
-        channels.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
-      end
-
       # 指定したChannelのヒストリを取得
       # @param [Plugin::Slack::Channel] channel ヒストリを取得したいChannel
       # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
