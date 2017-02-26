@@ -3,6 +3,7 @@
 require 'slack'
 require_relative 'api/auth'
 require_relative 'api/realtime'
+require_relative 'api/user'
 
 module Plugin::Slack
   module API
@@ -26,19 +27,19 @@ module Plugin::Slack
         Thread.new { team! }
       end
 
-      # ユーザーリストを取得
-      # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
       def users
-        Delayer::Deferred.when(Thread.new { @client.users_list['members'] }, team).next do |user_list, a_team|
-          user_list.map { |m| Plugin::Slack::User.new(m.symbolize.merge(team: a_team)) }
-        end
+        @users ||= Users.new(self)
       end
+
+      #
+      # 工事中
+      #
 
       # ユーザーリストを取得する
       # usersとの違いは、Deferredの戻り値がキーにユーザID、値にPlugin::Slack::Userを持ったHashであること。
       # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
       def users_dict
-        users.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
+        users.list.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
       end
 
       # チャンネルリスト返す

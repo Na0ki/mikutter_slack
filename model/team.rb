@@ -17,7 +17,7 @@ module Plugin::Slack
       if cache
         Delayer::Deferred.new.next { cache }
       else
-        api.users.next { |u| @users = u.freeze }
+        api.users.list.next { |u| @users = u.freeze }
       end
     end
 

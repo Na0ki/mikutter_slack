@@ -5,6 +5,14 @@ require_relative 'api'
 require_relative 'config/environment'
 
 Plugin.create(:slack) do
+  def start_realtime
+    api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
+    api.team.next { |team|
+      @team = team
+      # RTM 開始
+      api.realtime_start
+    }.trap { |e| error e }
+  end
 
   # slack api インスタンス作成
   start_realtime
@@ -66,15 +74,6 @@ Plugin.create(:slack) do
         :documenters => %w(ahiru3net toshi_a)
     })
 
-  end
-
-  def start_realtime
-    api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
-    api.team.next { |team|
-      @team = team
-      # RTM 開始
-      api.realtime_start
-    }.trap { |e| error e }
   end
 
 end
