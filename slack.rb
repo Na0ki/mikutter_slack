@@ -38,12 +38,12 @@ Plugin.create(:slack) do
 
   # 投稿をブロードキャストする
   # @example Plugin.call(:slack_post, channel_name, message)
-  on_slack_post do |channel, message|
+  on_slack_post do |channel_name, message|
     # Slackにメッセージの投稿
-    api.post_message(channel, message).next { |res|
-      notice "Slack:#{channel}に投稿しました: #{res}"
+    @team.api.message.post(channel_name, message).next { |res|
+      notice "Slack:#{channel_name}に投稿しました: #{res}"
     }.trap { |e|
-      error "[#{self.class.to_s}] Slack:#{channel}への投稿に失敗しました: #{e}"
+      error "[#{self.class.to_s}] Slack:#{channel_name}への投稿に失敗しました: #{e}"
     }
   end
 

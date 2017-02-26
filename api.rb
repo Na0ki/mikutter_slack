@@ -5,6 +5,7 @@ require_relative 'api/auth'
 require_relative 'api/realtime'
 require_relative 'api/user'
 require_relative 'api/channel'
+require_relative 'api/message'
 
 module Plugin::Slack
   module API
@@ -36,19 +37,9 @@ module Plugin::Slack
         @channel ||= Channel.new(self)
       end
 
-      #
-      # 工事中
-      #
-
-      # TODO: Plugin::Slack::Message に移行する
-      # メッセージの投稿
-      # @param [String] channel チャンネル名
-      # @param [String] text 投稿メッセージ
-      def post_message(channel, text)
-        option = {channel: channel, text: text, as_user: true}
-        Thread.new { @client.chat_postMessage(option) }
+      def message
+        @message ||= Message.new(self)
       end
-
 
       private
 
