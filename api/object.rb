@@ -32,7 +32,7 @@ module Plugin::Slack::API
     end
 
     def request_thread_cache
-      @request_thread_cache ||= {}
+      @request_thread_cache ||= TimeLimitedStorage.new(Symbol)
     end
   end
 end
