@@ -33,7 +33,7 @@ module Plugin::Slack
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
       def history(channel)
         Delayer::Deferred.when(
-          team.next{|t| t.user_dict },
+          team.next { |t| t.user_dict },
           Thread.new { api.client.channels_history(channel: channel.id)['messages'] }
         ).next { |users, histories|
           histories.select { |history|

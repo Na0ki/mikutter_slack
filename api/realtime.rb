@@ -65,8 +65,8 @@ module Plugin::Slack
       # メッセージの処理
       slack_api.team.next { |team|
         Delayer::Deferred.when(
-            team.user(data['user']),
-            team.channel(data['channel'])
+          team.user(data['user']),
+          team.channel(data['channel'])
         ).next { |user, channel|
           message = Plugin::Slack::Message.new(channel: channel,
                                                user: user,

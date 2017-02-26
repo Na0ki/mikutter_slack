@@ -22,8 +22,8 @@ module Plugin::Slack
     end
 
     def user_dict
-      users.next{|users_iter|
-        Hash[users_iter.map{|u| [u.id, u]}]
+      users.next { |users_iter|
+        Hash[users_iter.map { |u| [u.id, u] }]
       }
     end
 

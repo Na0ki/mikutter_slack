@@ -40,11 +40,11 @@ Plugin.create(:slack) do
   # @example Plugin.call(:slack_post, channel_name, message)
   on_slack_post do |channel_name, message|
     # Slackにメッセージの投稿
-    @team.channels.next{|channels|
-      channels.find{|c| c.name == channel_name }.post(message)
+    @team.channels.next { |channels|
+      channels.find { |c| c.name == channel_name }.post(message)
     }.next { |res|
       notice "Slack:#{channel_name}に投稿しました: #{res}"
-    }.trap{|err|
+    }.trap { |err|
       error "[#{self.class.to_s}] Slack:#{channel_name}への投稿に失敗しました: #{err}"
     }
   end
@@ -65,15 +65,15 @@ Plugin.create(:slack) do
     end
 
     about(_('%s について' % Plugin::Slack::Environment::NAME), {
-        :program_name => _('%s' % Plugin::Slack::Environment::NAME),
-        :copyright => _('2016-%s Naoki Maeda') % '2017',
-        :version => Plugin::Slack::Environment::VERSION,
-        :comments => _("サードパーティー製Slackクライアントの標準を夢見るmikutterプラグイン。\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
-        :license => (file_get_contents('./LICENSE') rescue nil),
-        :website => _('https://github.com/Na0ki/mikutter_slack.git'),
-        :authors => %w(ahiru3net toshi_a),
-        :artists => %w(ahiru3net),
-        :documenters => %w(ahiru3net toshi_a)
+      :program_name => _('%s' % Plugin::Slack::Environment::NAME),
+      :copyright => _('2016-%s Naoki Maeda') % '2017',
+      :version => Plugin::Slack::Environment::VERSION,
+      :comments => _("サードパーティー製Slackクライアントの標準を夢見るmikutterプラグイン。\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
+      :license => (file_get_contents('./LICENSE') rescue nil),
+      :website => _('https://github.com/Na0ki/mikutter_slack.git'),
+      :authors => %w(ahiru3net toshi_a),
+      :artists => %w(ahiru3net),
+      :documenters => %w(ahiru3net toshi_a)
     })
 
   end

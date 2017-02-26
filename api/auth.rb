@@ -24,10 +24,10 @@ module Plugin::Slack
         Thread.new {
           client = HTTPClient.new
           query = {
-              client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
-              scope: Plugin::Slack::Environment::SLACK_OAUTH_SCOPE,
-              redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI,
-              state: Plugin::Slack::Environment::SLACK_OAUTH_STATE
+            client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
+            scope: Plugin::Slack::Environment::SLACK_OAUTH_SCOPE,
+            redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI,
+            state: Plugin::Slack::Environment::SLACK_OAUTH_STATE
           }.to_hash
           client.get(Plugin::Slack::Environment::SLACK_AUTHORIZE_URI, :query => query, 'Content-Type' => 'application/json')
         }.next { |response|
@@ -77,10 +77,10 @@ module Plugin::Slack
         Thread.new(code) { |c|
           client = HTTPClient.new
           query = {
-              client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
-              client_secret: Plugin::Slack::Environment::SLACK_CLIENT_SECRET,
-              code: c,
-              redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI
+            client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
+            client_secret: Plugin::Slack::Environment::SLACK_CLIENT_SECRET,
+            code: c,
+            redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI
           }.to_hash
           client.get(Plugin::Slack::Environment::SLACK_OAUTH_ACCESS_URI, :query => query, 'Content-Type' => 'application/json')
         }.next { |response|
