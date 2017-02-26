@@ -46,7 +46,7 @@ module Plugin::Slack
       if cache
         Delayer::Deferred.new.next { cache }
       else
-        api.channels.next { |c| @channels = c.freeze }
+        api.channel.list.next { |c| @channels = c.freeze }
       end
     end
 

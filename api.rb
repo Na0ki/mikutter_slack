@@ -4,6 +4,7 @@ require 'slack'
 require_relative 'api/auth'
 require_relative 'api/realtime'
 require_relative 'api/user'
+require_relative 'api/channel'
 
 module Plugin::Slack
   module API
@@ -31,6 +32,10 @@ module Plugin::Slack
         @users ||= Users.new(self)
       end
 
+      def channel
+        @channel ||= Channel.new(self)
+      end
+
       #
       # 工事中
       #
@@ -40,17 +45,6 @@ module Plugin::Slack
       # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
       def users_dict
         users.list.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
-      end
-
-      # チャンネルリスト返す
-      # @return [Delayer::Deferred::Deferredable] 全てのChannelを引数にcallbackするDeferred
-      def channels
-        Delayer::Deferred.when(
-            team,
-            Thread.new { @client.channels_list['channels'] }
-        ).next { |team, channels_hash|
-          channels_hash.map { |_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
-        }
       end
 
       # チャンネルリストを取得する

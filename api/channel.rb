@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'slack'
+require_relative 'object'
 
 module Plugin::Slack
   module API
@@ -7,21 +8,13 @@ module Plugin::Slack
     ##################
     # Public Channel #
     ##################
-    class Channel
-
-      # チームを取得する。
-      # 一度でもTeamの取得に成功すると、二度目以降はその内容を返す
-      # @return [Delayer::Deferred::Deferredable] Teamを引数にcallbackするDeferred
-      def team
-        Thread.new { team! }
-      end
-
+    class Channel < Object
       # パブリックチャンネルリスト返す
       # @return [Delayer::Deferred::Deferredable] 全てのChannelを引数にcallbackするDeferred
-      def channel_list
+      def list
         Delayer::Deferred.when(
-            team,
-            Thread.new { @client.channels_list['channels'] }
+          team,
+          request_thread(:list) { api.client.channels_list['channels'] }
         ).next { |team, channels_hash|
           channels_hash.map { |_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
         }
@@ -55,14 +48,6 @@ module Plugin::Slack
           }
         }
       end
-
-
-      private
-
-      memoize def team!
-        Plugin::Slack::Team.new(@client.team_info['team'].symbolize)
-      end
-
     end
 
   end
