@@ -17,8 +17,14 @@ module Plugin::Slack
       if cache
         Delayer::Deferred.new.next { cache }
       else
-        api.users.next { |u| @users = u.freeze }
+        api.users.list.next { |u| @users = u.freeze }
       end
+    end
+
+    def user_dict
+      users.next{|users_iter|
+        Hash[users_iter.map{|u| [u.id, u]}]
+      }
     end
 
     # このチームに所属しているユーザを、メモリキャッシュから返す。
@@ -46,7 +52,7 @@ module Plugin::Slack
       if cache
         Delayer::Deferred.new.next { cache }
       else
-        api.channels.next { |c| @channels = c.freeze }
+        api.channel.list.next { |c| @channels = c.freeze }
       end
     end
 
