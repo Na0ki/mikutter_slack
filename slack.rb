@@ -7,13 +7,7 @@ require_relative 'config/environment'
 Plugin.create(:slack) do
 
   # slack api インスタンス作成
-  api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
-  api.team.next { |team|
-    @team = team
-    # RTM 開始
-    api.realtime_start
-  }.trap { |e| error e }
-
+  start_realtime
 
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
@@ -29,12 +23,7 @@ Plugin.create(:slack) do
   # @example Plugin.call(:slack_auth)
   on_slack_auth do
     Plugin::Slack::API::Auth.oauth.next { |_|
-      api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
-      api.team.next { |team|
-        @team = team
-        # RTM 開始
-        api.realtime_start
-      }.trap { |e| error e }
+      start_realtime
     }.trap { |e| error e }
   end
 
@@ -77,6 +66,15 @@ Plugin.create(:slack) do
         :documenters => %w(ahiru3net toshi_a)
     })
 
+  end
+
+  def start_realtime
+    api = Plugin::Slack::API::APA.new(UserConfig['slack_token'])
+    api.team.next { |team|
+      @team = team
+      # RTM 開始
+      api.realtime_start
+    }.trap { |e| error e }
   end
 
 end
