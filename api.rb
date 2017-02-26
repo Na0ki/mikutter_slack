@@ -5,7 +5,6 @@ require_relative 'api/auth'
 require_relative 'api/realtime'
 require_relative 'api/user'
 require_relative 'api/channel'
-require_relative 'api/message'
 
 module Plugin::Slack
   module API

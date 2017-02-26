@@ -34,6 +34,12 @@ module Plugin::Slack
       team.api.channel.history(self)
     end
 
+    # メッセージの投稿
+    # @param [String] text 投稿メッセージ
+    def post(text)
+      team.api.channel.post(self, text)
+    end
+
     # チャンネルのリンクを返す
     # @return [String] リンク
     def perma_link

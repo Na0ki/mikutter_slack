@@ -40,10 +40,12 @@ Plugin.create(:slack) do
   # @example Plugin.call(:slack_post, channel_name, message)
   on_slack_post do |channel_name, message|
     # Slackにメッセージの投稿
-    @team.api.message.post(channel_name, message).next { |res|
+    @team.channels.next{|channels|
+      channels.find{|c| c.name == channel_name }.post(message)
+    }.next { |res|
       notice "Slack:#{channel_name}に投稿しました: #{res}"
-    }.trap { |e|
-      error "[#{self.class.to_s}] Slack:#{channel_name}への投稿に失敗しました: #{e}"
+    }.trap{|err|
+      error "[#{self.class.to_s}] Slack:#{channel_name}への投稿に失敗しました: #{err}"
     }
   end
 

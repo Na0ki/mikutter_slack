@@ -48,6 +48,16 @@ module Plugin::Slack
           }
         }
       end
+
+      # メッセージの投稿
+      # @param [Plugin::Slack::Channel] channel チャンネルModel
+      # @param [String] text 投稿メッセージ
+      def post(channel, text)
+        Thread.new do
+          api.client.chat_postMessage(channel: channel.id, text: text, as_user: true)
+        end
+      end
+
     end
 
   end
