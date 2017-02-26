@@ -31,7 +31,7 @@ module Plugin::Slack
     # チャンネルのヒストリを返す
     # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
     def history
-      team.api.channel_history(self)
+      team.api.channel.history(self)
     end
 
     # チャンネルのリンクを返す

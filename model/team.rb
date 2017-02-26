@@ -21,6 +21,12 @@ module Plugin::Slack
       end
     end
 
+    def user_dict
+      users.next{|users_iter|
+        Hash[users_iter.map{|u| [u.id, u]}]
+      }
+    end
+
     # このチームに所属しているユーザを、メモリキャッシュから返す。
     # もしこのTeamのインスタンスにユーザがキャッシュされていない場合は、nilを返す。
     # Deferredで結果を遅らせることができず、すぐに結果が手に入らないなら失敗したほうが良い場合にこのメソッドを使う。

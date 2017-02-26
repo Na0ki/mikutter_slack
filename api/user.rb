@@ -14,6 +14,12 @@ module Plugin::Slack
         end
       end
 
+      # ユーザーリストを取得する
+      # usersとの違いは、Deferredの戻り値がキーにユーザID、値にPlugin::Slack::Userを持ったHashであること。
+      # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
+      def dict
+        list.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
+      end
 
       # ボットの情報を取得
       # @return [Delayer::Deferred::Deferrable] チームのボットの情報を取得

@@ -40,40 +40,6 @@ module Plugin::Slack
       # 工事中
       #
 
-      # ユーザーリストを取得する
-      # usersとの違いは、Deferredの戻り値がキーにユーザID、値にPlugin::Slack::Userを持ったHashであること。
-      # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
-      def users_dict
-        users.list.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
-      end
-
-      # 指定したChannelのヒストリを取得
-      # @param [Plugin::Slack::Channel] channel ヒストリを取得したいChannel
-      # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
-      # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
-      def channel_history(channel)
-        Delayer::Deferred.when(
-            users_dict,
-            Thread.new {
-              history = @client.channels_history(channel: channel.id)
-              Delayer::Deferred.fail(history) unless history['ok']
-              history['messages']
-            }
-        ).next { |users, histories|
-          histories.select { |history|
-            users.has_key?(history['user'])
-          }.map do |history|
-            Plugin::Slack::Message.new(channel: channel,
-                                       user: users[history['user']],
-                                       text: history['text'],
-                                       created: Time.at(Float(history['ts']).to_i),
-                                       team: channel[:team].name,
-                                       ts: history['ts'])
-          end
-        }
-      end
-
-
       # TODO: Plugin::Slack::Message に移行する
       # メッセージの投稿
       # @param [String] channel チャンネル名
