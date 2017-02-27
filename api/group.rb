@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 require 'slack'
+require_relative 'object'
 
 module Plugin::Slack
   module API
-    # TODO: Teamは channel と同じ処理なので統一する
 
     ###################
     #  Group Channel  #
@@ -14,7 +14,7 @@ module Plugin::Slack
       def list
         Delayer::Deferred.when(
           team,
-          Thread.new { @client.groups_list['channels'] }
+          request_thread(:list) { api.client.groups_list['channels'] }
         ).next { |team, channels_hash|
           channels_hash.map { |_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
         }
@@ -33,8 +33,8 @@ module Plugin::Slack
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/groups.history.md
       def history(channel)
         Delayer::Deferred.when(
-          users_dict,
-          Thread.new { @client.groups_history(channel: channel.id)['messages'] }
+          team.next { |t| t.user_dict },
+          Thread.new { api.client.groups_history(channel: channel.id)['messages'] }
         ).next { |users, histories|
           histories.select { |history|
             users.has_key?(history['user'])
