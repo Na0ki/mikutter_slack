@@ -12,13 +12,14 @@ module Plugin::Slack::API
       parent.team
     end
 
+
     private
 
     def request_thread(identity, &block)
       promise = Delayer.Deferred.new(true)
       request_thread_pool(identity).new do
         begin
-          result = request_thread_cache[identity] ||= block.call()
+          result = request_thread_cache[identity] ||= block.call
           promise.call(result)
         rescue Exception => err
           promise.fail(err)
@@ -34,5 +35,6 @@ module Plugin::Slack::API
     def request_thread_cache
       @request_thread_cache ||= TimeLimitedStorage.new(Symbol)
     end
+
   end
 end
