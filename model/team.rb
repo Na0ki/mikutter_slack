@@ -22,9 +22,7 @@ module Plugin::Slack
     end
 
     def user_dict
-      users.next { |users_iter|
-        Hash[users_iter.map { |u| [u.id, u] }]
-      }
+      users.next { |users_iter| Hash[users_iter.map { |u| [u.id, u] }] }
     end
 
     # このチームに所属しているユーザを、メモリキャッシュから返す。
@@ -74,23 +72,31 @@ module Plugin::Slack
       id_detector(channels, channel_id)
     end
 
-
-    # TODO: コメントを書く
+    # このチームの全てのEmojiを列挙する
+    # @return [Delayer::Deferred::Deferredable] チームの全Emojiを引数にcallbackするDeferred
     def emojis
-      # cache = @emoji
-      # if cache
-      #   Delayer::Deferred.new.next { cache }
-      # else
-      #   api.team.next { |t| @emoji = t.emoji_list[:emoji].freeze }
-      # end
+      cache = @emoji
+      if cache
+        Delayer::Deferred.new.next { cache }
+      else
+        api.emoji.list.next { |emoji| @emoji = emoji }
+      end
     end
 
-
+    # このチームに所属しているEmojiを、メモリキャッシュから返す。
+    # もしこのTeamのインスタンスにEmojiがキャッシュされていない場合は、nilを返す。
+    # Deferredで結果を遅らせることができず、すぐに結果が手に入らないなら失敗したほうが良い場合にこのメソッドを使う。
+    # APIリクエストをしても良い場合はこのメソッドの代わりに Plugin::Slack::Team#emoji を利用する。
+    # @return [Array] チームに所属するEmojiの配列
+    # @return [nil] 取得に失敗した場合
     def emojis!
       @emoji
     end
 
-
+    # Emoji名に対応するEmojiをcallbackするDeferredを返す。
+    # IDに対応するチャンネルが見つからなかった場合は、nilを引数に、trapブロックが呼ばれる。
+    # @param [String] emoji_name emoji名
+    # @return [Delayer::Deferred::Deferredable] Emojiを引数にcallbackするDeferred
     def emoji(emoji_name)
       id_detector(emojis, emoji_name)
     end
@@ -107,12 +113,12 @@ module Plugin::Slack
       "#{self.class.to_s}(id=#{id}, name=#{name})"
     end
 
+
     private
 
     def id_detector(defer, id)
-      defer.next { |list|
-        list.find { |o| o.id == id } or Delayer::Deferred.fail(:id_notfound)
-      }
+      defer.next { |list| list.find { |o| o.id == id } or Delayer::Deferred.fail(:id_notfound) }
     end
+
   end
 end
