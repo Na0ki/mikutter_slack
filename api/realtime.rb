@@ -19,7 +19,7 @@ module Plugin::Slack
       Thread.new {
         # RTMに接続開始
         @realtime.start
-      }.trap { |e| error e }
+      }.trap { |err| error err }
       self
     end
 
@@ -45,10 +45,10 @@ module Plugin::Slack
             })
           }
         }
-      }.trap { |e|
+      }.trap { |err|
         # 認証失敗時のエラーハンドリング
-        error e
-        Plugin.call(:slack_connection_failed, e)
+        error err
+        Plugin.call(:slack_connection_failed, err)
       }
     end
 
@@ -76,7 +76,7 @@ module Plugin::Slack
                                                ts: data['ts'])
           Plugin.call(:extract_receive_message, channel.datasource_slug, [message])
         }
-      }.trap { |e| error e }
+      }.trap { |err| error err }
     end
 
 

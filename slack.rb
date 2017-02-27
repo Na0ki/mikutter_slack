@@ -11,7 +11,7 @@ Plugin.create(:slack) do
       @team = team
       # RTM 開始
       api.realtime_start
-    }.trap { |e| error e }
+    }.trap { |err| error err }
   end
 
   # slack api インスタンス作成
@@ -32,7 +32,7 @@ Plugin.create(:slack) do
   on_slack_auth do
     Plugin::Slack::API::Auth.oauth.next { |_|
       start_realtime
-    }.trap { |e| error e }
+    }.trap { |err| error err }
   end
 
 

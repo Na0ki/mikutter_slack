@@ -50,11 +50,11 @@ module Plugin::Slack
               # アクセストークンの取得
               self.oauth_access(query['code'][0]).next { |token|
                 @server.shutdown
-              }.trap { |e| error e }
+              }.trap { |err| error err }
             end
             trap('INT') { @server.shutdown }
             @server.start
-          }.trap { |e| error e }
+          }.trap { |err| error err }
         }
       end
 

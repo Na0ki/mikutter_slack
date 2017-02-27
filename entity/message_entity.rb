@@ -70,8 +70,8 @@ module Plugin::Slack
           s[:message].team.user(matched[:id]).next { |user|
             uri = Retriever::URI(URI.encode("https://#{s[:message].team.name}.slack.com/team/#{user.name}")).to_uri.to_s
             s[:message].entity.add(s.merge(open: uri, url: uri, face: "@#{user.name}"))
-          }.trap { |e|
-            error e
+          }.trap { |err|
+            error err
             uri = Retriever::URI(URI.encode("https://#{s[:message].team.name}.slack.com/team/#{matched[:id]}")).to_uri.to_s
             s[:message].entity.add(s.merge(open: uri, url: uri, face: "error(#{matched[:id]})"))
           }
