@@ -90,8 +90,11 @@ module Plugin::Slack
         matched = /:(?<name>[\w\-]+)?:/.match(s[:face])
         s[:message].team.emoji(matched[:name]).next { |emoji|
           s[:message].entity.add(s.merge(open: emoji[1], url: emoji[1], face: matched[:name]))
-        }.trap { |err| error err }
-        s.merge(open: 'http://totori.dip.jp/', face: matched[:name], url: 'http://totori.dip.jp/')
+        }.trap { |err|
+          error err
+          s[:message].entity.add(s.merge(open: 'http://totori.dip.jp/', url: 'http://totori.dip.jp/', face: matched[:name]))
+        }
+        s.merge(open: 'http://totori.dip.jp/', url: 'http://totori.dip.jp/', face: matched[:name])
       }).
       #
       # 上記までの正規表現にマッチしなかった全ての <something> を取得
