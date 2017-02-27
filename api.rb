@@ -5,6 +5,7 @@ require_relative 'api/auth'
 require_relative 'api/realtime'
 require_relative 'api/user'
 require_relative 'api/channel'
+require_relative 'api/emoji'
 
 module Plugin::Slack
   module API
@@ -38,6 +39,10 @@ module Plugin::Slack
 
       def message
         @message ||= Message.new(self)
+      end
+
+      def emoji
+        @emoji ||= Emoji.new(self)
       end
 
       private

@@ -10,8 +10,9 @@ module Plugin::Slack
       # Emojiリストの取得
       # @return [Delayer::Deferred::Deferredable] 絵文字リストを引数にcallbackするDeferred
       def list
-        Thread.new { api.client.emoji_list }
+        Thread.new { api.client.emoji_list['emoji'] }
       end
+
     end
 
   end

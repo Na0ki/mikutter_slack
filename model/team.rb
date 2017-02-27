@@ -98,7 +98,7 @@ module Plugin::Slack
     # @param [String] emoji_name emoji名
     # @return [Delayer::Deferred::Deferredable] Emojiを引数にcallbackするDeferred
     def emoji(emoji_name)
-      id_detector(emojis, emoji_name)
+      emojis.next { |e| e.find { |k, _v| k == emoji_name} or Delayer::Deferred.fail(:emoji_not_found) }
     end
 
     def perma_link
@@ -117,7 +117,7 @@ module Plugin::Slack
     private
 
     def id_detector(defer, id)
-      defer.next { |list| list.find { |o| o.id == id } or Delayer::Deferred.fail(:id_notfound) }
+      defer.next { |list| list.find { |o| o.id == id } or Delayer::Deferred.fail(:id_not_found) }
     end
 
   end
