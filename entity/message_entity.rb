@@ -78,7 +78,7 @@ module Plugin::Slack
         end
 
         uri = Retriever::URI("https://#{s[:message].team.name}.slack.com/team/#{name}").to_uri.to_s
-        s.merge(open: uri, url: uri, face: name)
+        s.merge(open: uri, url: uri, face: "@#{name}")
       }).
       #
       # 絵文字をパースする
