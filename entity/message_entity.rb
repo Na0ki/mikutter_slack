@@ -87,9 +87,9 @@ module Plugin::Slack
       # @example
       #   :emoji_id: -> emoji_id
       filter(/:[\w\-]+:/, generator: -> s {
-        matched = /:(?<name>[\w\-]+)?:/.match(s[:face])
+        matched = /(?<face>:(?<name>[\w\-]+)?:)/.match(s[:face])
         s[:message].team.emoji(matched[:name]).next { |emoji|
-          s[:message].entity.add(s.merge(open: emoji, url: emoji, face: matched[:name]))
+          s[:message].entity.add(s.merge(open: emoji, url: emoji, face: matched[:face]))
         }.trap { |err|
           error err
           s[:message].entity.add(s.merge(open: 'http://totori.dip.jp/', url: 'http://totori.dip.jp/', face: matched[:name]))
