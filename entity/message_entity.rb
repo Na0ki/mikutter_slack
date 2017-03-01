@@ -88,9 +88,15 @@ module Plugin::Slack
       #   :emoji_id: -> emoji_id
       filter(/:[\w\-]+:/, generator: -> s {
         matched = /(?<face>:(?<name>[\w\-]+)?:)/.match(s[:face])
-        s[:message].team.emoji(matched[:name]).next { |emoji|
-          # FIXME: alias:emoji_name のような、別の絵文字に alias されたものに対応する
-          s[:message].entity.add(s.merge(open: emoji, url: emoji, face: matched[:face]))
+        s[:message].team.emoji(matched[:name]).next { |url|
+          emoji_alias = /alias:(?<name>.+)?/.match(url)
+          if emoji_alias.nil?
+            s[:message].entity.add(s.merge(open: url, url: url, face: matched[:face]))
+          else
+            s[:message].team.emoji(emoji_alias[:name]).next { |e_url|
+              s[:message].entity.add(s.merge(open: e_url, url: e_url, face: matched[:face]))
+            }
+          end
         }.trap { |err|
           error err
           s[:message].entity.add(s.merge(open: 'http://totori.dip.jp/', url: 'http://totori.dip.jp/', face: matched[:name]))
