@@ -98,7 +98,7 @@ module Plugin::Slack
     # @param [String] emoji_name emoji名
     # @return [Delayer::Deferred::Deferredable] EmojiのURLを引数にcallbackするDeferred
     def emoji(emoji_name)
-      emojis.next { |e| e.find { |k, _v| k == emoji_name}[1] or Delayer::Deferred.fail(:emoji_not_found) }
+      emojis.next { |e| e[emoji_name] or Delayer::Deferred.fail(:emoji_not_found) }
     end
 
     def perma_link
