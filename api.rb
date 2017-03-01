@@ -24,6 +24,7 @@ module Plugin::Slack
 
       # チームを取得する
       # 一度でもTeamの取得に成功すると、二度目以降はその内容を返す
+      #
       # @return [Delayer::Deferred::Deferredable] Teamを引数にcallbackするDeferred
       def team
         Thread.new { team! }

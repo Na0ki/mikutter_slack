@@ -78,7 +78,7 @@ module Plugin::Slack
         end
 
         uri = Retriever::URI("https://#{s[:message].team.name}.slack.com/team/#{name}").to_uri.to_s
-        s.merge(open: uri, url: uri, face: name)
+        s.merge(open: uri, url: uri, face: "@#{name}")
       }).
       #
       # 絵文字をパースする
@@ -87,9 +87,17 @@ module Plugin::Slack
       # @example
       #   :emoji_id: -> emoji_id
       filter(/:[\w\-]+:/, generator: -> s {
-        matched = /:(?<name>[\w\-]+)?:/.match(s[:face])
-        s[:message].team.emoji(matched[:name]).next { |emoji|
-          s[:message].entity.add(s.merge(open: emoji[1], url: emoji[1], face: matched[:name]))
+        matched = /(?<face>:(?<name>[\w\-]+)?:)/.match(s[:face])
+        s[:message].team.emoji(matched[:name]).next { |url|
+          # 絵文字URLがaliasにされている場合を考慮する
+          emoji_alias = /alias:(?<name>.+)?/.match(url)
+          if emoji_alias.nil?
+            s[:message].entity.add(s.merge(open: url, url: url, face: matched[:face]))
+          else
+            s[:message].team.emoji(emoji_alias[:name]).next { |e_url|
+              s[:message].entity.add(s.merge(open: e_url, url: e_url, face: matched[:face]))
+            }
+          end
         }.trap { |err|
           error err
           s[:message].entity.add(s.merge(open: 'http://totori.dip.jp/', url: 'http://totori.dip.jp/', face: matched[:name]))

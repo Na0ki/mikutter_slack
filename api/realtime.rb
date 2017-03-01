@@ -2,17 +2,20 @@
 
 module Plugin::Slack
   class Realtime
-    attr_reader :slack_api
+    attr_reader :api
 
-    # @param [Plugin::Slack::API] slack_api 接続対象のSlackAPIのインスタンス
-    def initialize(slack_api)
-      @slack_api = slack_api
-      @realtime = @slack_api.client.realtime
+    # コンストラクタ
+    #
+    # @param [Plugin::Slack::API] api 接続対象のSlackAPIのインスタンス
+    def initialize(api)
+      @api = api
+      @realtime = @api.client.realtime
       @defined_time = Time.new
     end
 
 
     # Realtime APIに実際に接続する
+    #
     # @return [Plugin::Slack::Realtime] self
     def start
       setup
@@ -26,9 +29,13 @@ module Plugin::Slack
 
     private
 
-    # 接続時
+    # 接続時の処理
+    #   * 認証テスト
+    #   * チームの取得
+    #   * チャンネルの取得
+    #   * チャンネルのヒストリ取得
     def connected
-      Plugin::Slack::API::Auth.new(slack_api.client).auth_test.next { |auth|
+      Plugin::Slack::API::Auth.new(api.client).auth_test.next { |auth|
         notice "[認証成功] チーム: #{auth['team']}, ユーザー: #{auth['user']}" # DEBUG
 
         # 認証失敗時は強制的にエラー処理へ飛ばし、ヒストリを取得しない
@@ -36,11 +43,11 @@ module Plugin::Slack
         # Activityに通知
         Plugin.call(:slack_connected, auth)
 
-        slack_api.team.next { |team| # チームの取得
+        api.team.next { |team| # チームの取得
           team.channels.next { |channels| # チームのチャンネルリストを取得
             Delayer::Deferred.when(*channels.map { |channel|
-              slack_api.channel.history(channel).next { |messages|
-                Plugin.call :extract_receive_message, channel.datasource_slug, messages
+              api.channel.history(channel).next { |messages|
+                Plugin.call(:extract_receive_message, channel.datasource_slug, messages)
               }
             })
           }
@@ -54,6 +61,7 @@ module Plugin::Slack
 
 
     # 受信したメッセージのデータソースへの投稿
+    #
     # @param [Hash] data メッセージ
     def receive_message(data)
       # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
@@ -63,7 +71,7 @@ module Plugin::Slack
       return if data['text'].empty?
 
       # メッセージの処理
-      slack_api.team.next { |team|
+      api.team.next { |team|
         Delayer::Deferred.when(
           team.user(data['user']),
           team.channel(data['channel'])
@@ -86,12 +94,8 @@ module Plugin::Slack
         connected
       end
 
-
-      @realtime.on :open do |data|
-        p data
-      end
-
       # メッセージ書き込み時に呼ばれる
+      #
       # @param [Hash] data メッセージ
       @realtime.on :message do |data|
         receive_message(data)
