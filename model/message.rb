@@ -25,12 +25,14 @@ module Plugin::Slack
     alias_method :description, :text
 
     # このMessageが所属するTeam
+    #
     # @return [Plugin::Slack::Team] チーム
     def team
       channel.team
     end
 
     # Messageのリンク
+    #
     # @return [Retriever::URI] リンク
     def perma_link
       Retriever::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.gsub('.', '')}")

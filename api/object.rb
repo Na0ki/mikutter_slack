@@ -14,11 +14,15 @@ module Plugin::Slack::API
 
     private
 
+    # TODO: comment
+    #
+    # @param [Symbol] identity
+    # @param [callback]
     def request_thread(identity, &block)
       promise = Delayer.Deferred.new(true)
       request_thread_pool(identity).new do
         begin
-          result = request_thread_cache[identity] ||= block.call()
+          result = request_thread_cache[identity] ||= block.call
           promise.call(result)
         rescue Exception => err
           promise.fail(err)
@@ -27,10 +31,15 @@ module Plugin::Slack::API
       promise
     end
 
+    # TODO: comment
+    #
+    # @param [Symbol] _identity
     memoize def request_thread_pool(_identity)
       SerialThreadGroup.new
     end
 
+    # TODO: comment
+    #
     def request_thread_cache
       @request_thread_cache ||= TimeLimitedStorage.new(Symbol)
     end

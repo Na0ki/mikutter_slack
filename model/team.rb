@@ -94,6 +94,7 @@ module Plugin::Slack
     # もしこのTeamのインスタンスにEmojiがキャッシュされていない場合は、nilを返す。
     # Deferredで結果を遅らせることができず、すぐに結果が手に入らないなら失敗したほうが良い場合にこのメソッドを使う。
     # APIリクエストをしても良い場合はこのメソッドの代わりに Plugin::Slack::Team#emoji を利用する。
+    #
     # @return [Array] チームに所属するEmojiの配列
     # @return [nil] 取得に失敗した場合
     def emojis!

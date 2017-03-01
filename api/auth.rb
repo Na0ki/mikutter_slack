@@ -11,13 +11,13 @@ module Plugin::Slack
   module API
     class Auth
 
-      # TODO: 認証を開発者トークンとOAuthのどちらでもできるようにする
       def initialize(client)
         @client = client
       end
 
 
       # OAuth認証を行う
+      #
       # @return [Delayer::Deferred::Deferredable] なんかを引数にcallbackするDeferred
       # @see {https://api.slack.com/docs/oauth}
       def self.oauth
@@ -60,6 +60,7 @@ module Plugin::Slack
 
 
       # 認証テスト
+      #
       # @return [Delayer::Deferred::Deferredable] 認証結果を引数にcallbackするDeferred
       def auth_test
         Thread.new { @client.auth_test }
@@ -70,6 +71,7 @@ module Plugin::Slack
 
 
       # OAuthのコールバックで得たcodeを用いてaccess_tokenを取得する
+      #
       # @param [String] code コールバックコード
       # @return [Delayer::Deferred::Deferredable] access_tokenを引数にcallbackするDeferred
       # @see {https://api.slack.com/methods/oauth.access}

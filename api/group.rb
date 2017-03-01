@@ -22,12 +22,14 @@ module Plugin::Slack
 
       # プライベートチャンネルリストを取得する
       # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること
+      #
       # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
       def dict
         channels.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
       end
 
       # 指定したプライベートChannelのヒストリを取得
+      #
       # @param [Plugin::Slack::Channel] channel ヒストリを取得したいChannel
       # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/groups.history.md
@@ -50,6 +52,7 @@ module Plugin::Slack
       end
 
       # メッセージの投稿
+      #
       # @param [Plugin::Slack::Channel] channel チャンネルModel
       # @param [String] text 投稿メッセージ
       def post(channel, text)

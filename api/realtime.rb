@@ -4,6 +4,8 @@ module Plugin::Slack
   class Realtime
     attr_reader :api
 
+    # コンストラクタ
+    #
     # @param [Plugin::Slack::API] api 接続対象のSlackAPIのインスタンス
     def initialize(api)
       @api = api
@@ -13,6 +15,7 @@ module Plugin::Slack
 
 
     # Realtime APIに実際に接続する
+    #
     # @return [Plugin::Slack::Realtime] self
     def start
       setup
@@ -26,7 +29,11 @@ module Plugin::Slack
 
     private
 
-    # 接続時
+    # 接続時の処理
+    #   * 認証テスト
+    #   * チームの取得
+    #   * チャンネルの取得
+    #   * チャンネルのヒストリ取得
     def connected
       Plugin::Slack::API::Auth.new(api.client).auth_test.next { |auth|
         notice "[認証成功] チーム: #{auth['team']}, ユーザー: #{auth['user']}" # DEBUG
@@ -54,6 +61,7 @@ module Plugin::Slack
 
 
     # 受信したメッセージのデータソースへの投稿
+    #
     # @param [Hash] data メッセージ
     def receive_message(data)
       # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
@@ -87,6 +95,7 @@ module Plugin::Slack
       end
 
       # メッセージ書き込み時に呼ばれる
+      #
       # @param [Hash] data メッセージ
       @realtime.on :message do |data|
         receive_message(data)
