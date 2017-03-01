@@ -89,6 +89,7 @@ module Plugin::Slack
       filter(/:[\w\-]+:/, generator: -> s {
         matched = /(?<face>:(?<name>[\w\-]+)?:)/.match(s[:face])
         s[:message].team.emoji(matched[:name]).next { |url|
+          # 絵文字URLがaliasにされている場合を考慮する
           emoji_alias = /alias:(?<name>.+)?/.match(url)
           if emoji_alias.nil?
             s[:message].entity.add(s.merge(open: url, url: url, face: matched[:face]))

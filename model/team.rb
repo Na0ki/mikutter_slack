@@ -11,6 +11,7 @@ module Plugin::Slack
     field.string :email_domain
 
     # このチームに所属しているユーザを列挙する
+    #
     # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
     def users
       cache = @users
@@ -29,6 +30,7 @@ module Plugin::Slack
     # もしこのTeamのインスタンスにユーザがキャッシュされていない場合は、nilを返す。
     # Deferredで結果を遅らせることができず、すぐに結果が手に入らないなら失敗したほうが良い場合にこのメソッドを使う。
     # APIリクエストをしても良い場合はこのメソッドの代わりに Plugin::Slack::Team#users を利用する。
+    #
     # @return [Array] チームに所属するユーザの配列
     # @return [nil] 取得に失敗した場合
     def users!
@@ -37,6 +39,7 @@ module Plugin::Slack
 
     # ユーザIDに対応するUserをcallbackするDeferredを返す。
     # IDに対応するユーザが見つからなかった場合は、nilを引数に、trapブロックが呼ばれる。
+    #
     # @param [String] ユーザID
     # @return [Delayer::Deferred::Deferredable] Userを引数にcallbackするDeferred
     def user(user_id)
@@ -44,6 +47,7 @@ module Plugin::Slack
     end
 
     # このチームの全てのChannelを列挙する
+    #
     # @return [Delayer::Deferred::Deferredable] チームの全Channelを引数にcallbackするDeferred
     def channels
       cache = @channels
@@ -58,6 +62,7 @@ module Plugin::Slack
     # もしこのTeamのインスタンスにチャンネルがキャッシュされていない場合は、nilを返す。
     # Deferredで結果を遅らせることができず、すぐに結果が手に入らないなら失敗したほうが良い場合にこのメソッドを使う。
     # APIリクエストをしても良い場合はこのメソッドの代わりに Plugin::Slack::Team#channels を利用する。
+    #
     # @return [Array] チームに所属するチャンネルの配列
     # @return [nil] 取得に失敗した場合
     def channels!
@@ -66,6 +71,7 @@ module Plugin::Slack
 
     # チャンネルIDに対応するChannelをcallbackするDeferredを返す。
     # IDに対応するチャンネルが見つからなかった場合は、nilを引数に、trapブロックが呼ばれる。
+    #
     # @param [String] channel_id チャンネルID
     # @return [Delayer::Deferred::Deferredable] Channelを引数にcallbackするDeferred
     def channel(channel_id)
@@ -73,6 +79,7 @@ module Plugin::Slack
     end
 
     # このチームの全てのEmojiを列挙する
+    #
     # @return [Delayer::Deferred::Deferredable] チームの全Emojiを引数にcallbackするDeferred
     def emojis
       cache = @emoji
@@ -95,6 +102,8 @@ module Plugin::Slack
 
     # Emoji名に対応するEmojiをcallbackするDeferredを返す。
     # IDに対応するチャンネルが見つからなかった場合は、nilを引数に、trapブロックが呼ばれる。
+    # 基本的にはURLを返すが、他の絵文字にaliasされている場合は `alias:絵文字名` といった形式の文字列を返す
+    #
     # @param [String] emoji_name emoji名
     # @return [Delayer::Deferred::Deferredable] EmojiのURLを引数にcallbackするDeferred
     def emoji(emoji_name)
