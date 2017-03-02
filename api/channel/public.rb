@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-require 'slack'
-require_relative 'object'
+require_relative 'channel'
 
 module Plugin::Slack
   module API
 
-    class Channel < Object
+    class PublicChannel < Channel
       # パブリックチャンネルリスト返す
-      #
       # @return [Delayer::Deferred::Deferredable] 全てのChannelを引数にcallbackするDeferred
       def list
         Delayer::Deferred.when(
@@ -20,14 +18,12 @@ module Plugin::Slack
 
       # パブリックチャンネルリストを取得する。
       # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
-      #
       # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
       def dict
         list.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
       end
 
       # 指定したパブリックChannelのヒストリを取得
-      #
       # @param [Plugin::Slack::Channel] channel ヒストリを取得したいChannel
       # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
       # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
@@ -50,13 +46,10 @@ module Plugin::Slack
       end
 
       # メッセージの投稿
-      #
       # @param [Plugin::Slack::Channel] channel チャンネルModel
       # @param [String] text 投稿メッセージ
       def post(channel, text)
-        Thread.new do
-          api.client.chat_postMessage(channel: channel.id, text: text, as_user: true)
-        end
+        Thread.new { api.client.chat_postMessage(channel: channel.id, text: text, as_user: true) }
       end
 
     end

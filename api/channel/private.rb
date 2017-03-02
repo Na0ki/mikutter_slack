@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-require 'slack'
-require_relative 'object'
+require_relative 'channel'
 
 module Plugin::Slack
   module API
 
-    class PrivateChannel < Object
+    class PrivateChannel < Channel
       # プライベートチャンネルリスト返す
       # @return [Delayer::Deferred::Deferredable] 全てのChannelを引数にcallbackするDeferred
       def list
@@ -53,9 +52,7 @@ module Plugin::Slack
       # @param [Plugin::Slack::Channel] channel チャンネルModel
       # @param [String] text 投稿メッセージ
       def post(channel, text)
-        Thread.new do
-          api.client.chat_postMessage(channel: channel.id, text: text, as_user: true)
-        end
+        Thread.new { api.client.chat_postMessage(channel: channel.id, text: text, as_user: true) }
       end
 
     end
