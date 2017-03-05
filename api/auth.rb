@@ -11,23 +11,23 @@ module Plugin::Slack
   module API
     class Auth
 
-      # TODO: 認証を開発者トークンとOAuthのどちらでもできるようにする
       def initialize(client)
         @client = client
       end
 
 
       # OAuth認証を行う
+      #
       # @return [Delayer::Deferred::Deferredable] なんかを引数にcallbackするDeferred
       # @see {https://api.slack.com/docs/oauth}
       def self.oauth
         Thread.new {
           client = HTTPClient.new
           query = {
-              client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
-              scope: Plugin::Slack::Environment::SLACK_OAUTH_SCOPE,
-              redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI,
-              state: Plugin::Slack::Environment::SLACK_OAUTH_STATE
+            client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
+            scope: Plugin::Slack::Environment::SLACK_OAUTH_SCOPE,
+            redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI,
+            state: Plugin::Slack::Environment::SLACK_OAUTH_STATE
           }.to_hash
           client.get(Plugin::Slack::Environment::SLACK_AUTHORIZE_URI, :query => query, 'Content-Type' => 'application/json')
         }.next { |response|
@@ -50,16 +50,17 @@ module Plugin::Slack
               # アクセストークンの取得
               self.oauth_access(query['code'][0]).next { |token|
                 @server.shutdown
-              }.trap { |e| error e }
+              }.trap { |err| error err }
             end
             trap('INT') { @server.shutdown }
             @server.start
-          }.trap { |e| error e }
+          }.trap { |err| error err }
         }
       end
 
 
       # 認証テスト
+      #
       # @return [Delayer::Deferred::Deferredable] 認証結果を引数にcallbackするDeferred
       def auth_test
         Thread.new { @client.auth_test }
@@ -70,6 +71,7 @@ module Plugin::Slack
 
 
       # OAuthのコールバックで得たcodeを用いてaccess_tokenを取得する
+      #
       # @param [String] code コールバックコード
       # @return [Delayer::Deferred::Deferredable] access_tokenを引数にcallbackするDeferred
       # @see {https://api.slack.com/methods/oauth.access}
@@ -77,10 +79,10 @@ module Plugin::Slack
         Thread.new(code) { |c|
           client = HTTPClient.new
           query = {
-              client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
-              client_secret: Plugin::Slack::Environment::SLACK_CLIENT_SECRET,
-              code: c,
-              redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI
+            client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
+            client_secret: Plugin::Slack::Environment::SLACK_CLIENT_SECRET,
+            code: c,
+            redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI
           }.to_hash
           client.get(Plugin::Slack::Environment::SLACK_OAUTH_ACCESS_URI, :query => query, 'Content-Type' => 'application/json')
         }.next { |response|

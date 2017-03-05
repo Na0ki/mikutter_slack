@@ -22,18 +22,18 @@ module Plugin::Slack
     entity_class Diva::Entity::URLEntity
     entity_class Plugin::Slack::Entity::MessageEntity
 
-    def to_show
-      @to_show ||= self[:text]
-    end
+    alias_method :description, :text
 
     # このMessageが所属するTeam
+    #
     # @return [Plugin::Slack::Team] チーム
     def team
       channel.team
     end
 
     # Messageのリンク
-    # @return [Diva::URI] リンク
+    #
+    # @return [Retriever::URI] リンク
     def perma_link
       Diva::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.gsub('.', '')}")
     end

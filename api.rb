@@ -3,6 +3,9 @@
 require 'slack'
 require_relative 'api/auth'
 require_relative 'api/realtime'
+require_relative 'api/user'
+require_relative 'api/channel'
+require_relative 'api/emoji'
 
 module Plugin::Slack
   module API
@@ -19,90 +22,29 @@ module Plugin::Slack
         @realtime ||= Plugin::Slack::Realtime.new(self).start
       end
 
-      # チームを取得する。
+      # チームを取得する
       # 一度でもTeamの取得に成功すると、二度目以降はその内容を返す
+      #
       # @return [Delayer::Deferred::Deferredable] Teamを引数にcallbackするDeferred
       def team
         Thread.new { team! }
       end
 
-      # ユーザーリストを取得
-      # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
       def users
-        Delayer::Deferred.when(Thread.new { @client.users_list['members'] }, team).next do |user_list, a_team|
-          user_list.map do |m|
-            Plugin::Slack::User.new(m.symbolize.merge(team: a_team))
-          end
-        end
+        @users ||= Users.new(self)
       end
 
-      # ユーザーリストを取得する。
-      # usersとの違いは、Deferredの戻り値がキーにユーザID、値にPlugin::Slack::Userを持ったHashであること。
-      # @return [Delayer::Deferred::Deferredable] チームの全ユーザを引数にcallbackするDeferred
-      def users_dict
-        users.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
+      def channel
+        @channel ||= Channel.new(self)
       end
 
-      # チャンネルリスト返す
-      # @return [Delayer::Deferred::Deferredable] 全てのChannelを引数にcallbackするDeferred
-      def channels
-        Delayer::Deferred.when(
-            team,
-            Thread.new { @client.channels_list['channels'] }
-        ).next { |team, channels_hash|
-          channels_hash.map { |_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
-        }
+      def message
+        @message ||= Message.new(self)
       end
 
-      # チャンネルリストを取得する。
-      # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
-      # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
-      def channels_dict
-        channels.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
+      def emoji
+        @emoji ||= Emoji.new(self)
       end
-
-      # 指定したChannelのヒストリを取得
-      # @param [Plugin::Slack::Channel] channel ヒストリを取得したいChannel
-      # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
-      # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
-      def channel_history(channel)
-        Delayer::Deferred.when(
-            users_dict,
-            Thread.new {
-              history = @client.channels_history(channel: channel.id)
-              Delayer::Deferred.fail(history) unless history['ok']
-              history['messages']
-            }
-        ).next { |users, histories|
-          histories.select { |history|
-            users.has_key?(history['user'])
-          }.map do |history|
-            Plugin::Slack::Message.new(channel: channel,
-                                       user: users[history['user']],
-                                       text: history['text'],
-                                       created: Time.at(Float(history['ts']).to_i),
-                                       team: channel[:team].name,
-                                       ts: history['ts'])
-          end
-        }
-      end
-
-
-      # Emojiリストの取得
-      # @return [Delayer::Deferred::Deferredable] 絵文字リストを引数にcallbackするDeferred
-      def emoji_list
-        Thread.new { @client.emoji_list }
-      end
-
-
-      # メッセージの投稿
-      # @param [String] channel チャンネル名
-      # @param [String] text 投稿メッセージ
-      def post_message(channel, text)
-        option = {channel: channel, text: text, as_user: true}
-        Thread.new { @client.chat_postMessage(option) }
-      end
-
 
       private
 
