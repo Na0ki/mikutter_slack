@@ -4,7 +4,7 @@ require 'slack'
 require_relative 'api/auth'
 require_relative 'api/realtime'
 require_relative 'api/user'
-require_relative 'api/channel'
+require_relative 'api/channel/channel'
 require_relative 'api/emoji'
 
 module Plugin::Slack
