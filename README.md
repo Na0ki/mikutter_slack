@@ -61,7 +61,7 @@ mikutterのgitリポジトリURLはこちら -> git://toshia.dip.jp/mikutter.git
 | name      |      version  |
 |:----------|--------------:|
 |mikutter   | 3.6.0-develop |
-|ruby       |         2.3.0 |
+|ruby       |         2.4.0 |
 
 
 ## ライセンス
