@@ -55,7 +55,7 @@ mikutter で Slack が使えてしまうやつ（を目指してます）
 ## システム要件
 *要件を満たしているなら動くとは言っていない*  
 推奨バージョンはmikutterのgitリポジトリの最新のdevelopブランチです。  
-developブランチ以外では動作しません。
+developブランチ以外では動作しません。  
 mikutterのgitリポジトリURLはこちら -> git://toshia.dip.jp/mikutter.git
 
 | name      |      version  |
