@@ -4,8 +4,8 @@ module Plugin::Slack
   # Userクラス
   # @see https://toshia.github.io/writing-mikutter-plugin/model/2016/09/30/model-usermixin.html
   # @see https://toshia.github.io/writing-mikutter-plugin/model/2016/09/30/model-field.html
-  class User < Retriever::Model
-    include Retriever::Model::UserMixin
+  class User < Diva::Model
+    include Diva::Model::UserMixin
 
     field.string :id, required: true
     field.string :name, required: true
@@ -20,7 +20,7 @@ module Plugin::Slack
     end
 
     def perma_link
-      Retriever::URI("https://#{team.domain}.slack.com/team/#{name}")
+      Diva::URI("https://#{team.domain}.slack.com/team/#{name}")
     end
 
     def inspect
