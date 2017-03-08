@@ -49,7 +49,7 @@ mikutter で Slack が使えてしまうやつ（を目指してます）
 
 
 ## 開発に関するWiki
-* [mikutter_slack Wiki](https://github.com/Na0ki/mikutter_slack/wiki)
+そんなものなかった
 
 
 ## システム要件
