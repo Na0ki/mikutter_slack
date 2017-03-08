@@ -3,7 +3,7 @@
 # Team Model
 # @see https://api.slack.com/methods/team.info
 module Plugin::Slack
-  class Team < Retriever::Model
+  class Team < Diva::Model
 
     field.string :id, required: true
     field.string :name, required: true
@@ -112,7 +112,7 @@ module Plugin::Slack
     end
 
     def perma_link
-      Retriever::URI("https://#{domain}.slack.com/")
+      Diva::URI("https://#{domain}.slack.com/")
     end
 
     def api
