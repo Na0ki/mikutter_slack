@@ -58,11 +58,18 @@ mikutter で Slack が使えてしまうやつ（を目指してます）
 developブランチ以外では動作しません。  
 mikutterのgitリポジトリURLはこちら -> git://toshia.dip.jp/mikutter.git
 
+
+### 最低要件
+| name      |      version  |
+|:----------|--------------:|
+|mikutter   | 3.6.0-develop |
+|ruby       |         2.2.6 |
+
+### 推奨要件
 | name      |      version  |
 |:----------|--------------:|
 |mikutter   | 3.6.0-develop |
 |ruby       |         2.4.0 |
-
 
 ## ライセンス
 [MIT LICENSE](/LICENSE)
