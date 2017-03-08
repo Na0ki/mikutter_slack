@@ -5,9 +5,7 @@ require_relative 'object'
 module Plugin::Slack
   module API
 
-    ##################
-    # Public Channel #
-    ##################
+    # チャンネルの親クラス
     class Channel < Object
       # パブリックチャンネルリスト返す
       #
