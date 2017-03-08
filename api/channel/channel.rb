@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-require 'slack'
 require_relative '../object'
 
 module Plugin::Slack
@@ -13,7 +12,7 @@ module Plugin::Slack
       def list
         Delayer::Deferred.when(
           team,
-          request_thread(:list) { api.client.channels_list['channels'] }
+          request_thread(:list) { query_list }
         ).next { |team, channels_hash|
           channels_hash.map { |_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
         }
@@ -35,7 +34,7 @@ module Plugin::Slack
       def history(channel)
         Delayer::Deferred.when(
           team.next { |t| t.user_dict },
-          Thread.new { api.client.channels_history(channel: channel.id)['messages'] }
+          Thread.new { query_history }
         ).next { |users, histories|
           histories.select { |history|
             users.has_key?(history['user'])
