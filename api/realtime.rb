@@ -36,7 +36,7 @@ module Plugin::Slack
     #   * チャンネルのヒストリ取得
     def connected
       Plugin::Slack::API::Auth.new(api.client).auth_test.next { |auth|
-        notice "[認証成功] チーム: #{auth['team']}, ユーザー: #{auth['user']}" # DEBUG
+        notice "[AUTH SUCCESS] team: #{auth['team']}, user: #{auth['user']}"
 
         # 認証失敗時は強制的にエラー処理へ飛ばし、ヒストリを取得しない
         Delayer::Deferred.fail(auth) unless auth['ok']
