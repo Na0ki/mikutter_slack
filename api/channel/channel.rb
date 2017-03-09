@@ -6,7 +6,7 @@ module Plugin::Slack
 
     # チャンネルの親クラス
     class Channel < Object
-      # パブリックチャンネルリスト返す
+      # チャンネルリスト返す
       #
       # @return [Delayer::Deferred::Deferredable] 全てのChannelを引数にcallbackするDeferred
       def list
@@ -18,15 +18,15 @@ module Plugin::Slack
         }
       end
 
-      # パブリックチャンネルリストを取得する。
-      # channelsとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
+      # チャンネルリストを取得する。
+      # listとの違いは、Deferredの戻り値がキーにチャンネルID、値にPlugin::Slack::Channelを持ったHashであること。
       #
       # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
       def dict
         list.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
       end
 
-      # 指定したパブリックChannelのヒストリを取得
+      # 指定したChannelのヒストリを取得
       #
       # @param [Plugin::Slack::Channel] channel ヒストリを取得したいChannel
       # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
@@ -34,7 +34,7 @@ module Plugin::Slack
       def history(channel)
         Delayer::Deferred.when(
           team.next { |t| t.user_dict },
-          Thread.new { query_history }
+          Thread.new { query_history(channel) }
         ).next { |users, histories|
           histories.select { |history|
             users.has_key?(history['user'])

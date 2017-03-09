@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require_relative '../api/channel/public'
 
 # Team Model
 # @see https://api.slack.com/methods/team.info
@@ -54,7 +55,7 @@ module Plugin::Slack
       if cache
         Delayer::Deferred.new.next { cache }
       else
-        api.channel.list.next { |c| @channels = c.freeze }
+        api.public_channel.list.next { |c| @channels = c.freeze }
       end
     end
 

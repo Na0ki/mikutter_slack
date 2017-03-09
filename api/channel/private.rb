@@ -9,7 +9,7 @@ module Plugin::Slack
         api.client.groups_list['channels']
       end
 
-      private def query_history
+      private def query_history(channel)
         api.client.groups_history(channel: channel.id)['messages']
       end
     end
