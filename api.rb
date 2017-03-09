@@ -4,7 +4,8 @@ require 'slack'
 require_relative 'api/auth'
 require_relative 'api/realtime'
 require_relative 'api/user'
-require_relative 'api/channel'
+require_relative 'api/channel/public'
+require_relative 'api/channel/private'
 require_relative 'api/emoji'
 
 module Plugin::Slack
@@ -34,8 +35,12 @@ module Plugin::Slack
         @users ||= Users.new(self)
       end
 
-      def channel
-        @channel ||= Channel.new(self)
+      def public_channel
+        @public_channel ||= PublicChannel.new(self)
+      end
+
+      def private_channel
+        @private_channel ||= PrivateChannel.new(self)
       end
 
       def message
