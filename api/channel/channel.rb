@@ -30,7 +30,6 @@ module Plugin::Slack
       #
       # @param [Plugin::Slack::Channel] channel ヒストリを取得したいChannel
       # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
-      # @see https://github.com/aki017/slack-api-docs/blob/master/methods/channels.history.md
       def history(channel)
         Delayer::Deferred.when(
           team.next { |t| t.user_dict },
