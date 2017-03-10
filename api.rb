@@ -35,6 +35,10 @@ module Plugin::Slack
         @users ||= Users.new(self)
       end
 
+      def channel
+        # @channel ||=
+      end
+
       def public_channel
         @public_channel ||= PublicChannel.new(self)
       end

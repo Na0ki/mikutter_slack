@@ -2,19 +2,35 @@
 
 module Plugin::Slack
 
+  # Channelのモデル
+  # @see https://api.slack.com/methods/channels.info
   class Channel < Diva::Model
     register :slack_channel, name: 'Slack Channel'
 
     field.string :id, required: true
     field.string :name, required: true
 
-    field.bool :is_member
-    field.bool :is_starred
+    field.string :created
+    field.string :creator
+
     field.bool :is_archived
     field.bool :is_general
-    field.has :team, Plugin::Slack::Team, required: true
+    field.bool :is_member
+    field.bool :is_starred
+
+    # TODO: User情報をchannelに持たせる
+    # field.has :members, [Plugin::Slack::User], required: true
+
+    # TODO: topicとpurposeはオブジェクト（どう持たせるか）
+    # field.string :topic
+    # field.string :purpose
+
+    field.string :last_read
+    field.string :latest
     field.int :unread_count
     field.int :unread_count_display
+
+    field.has :team, Plugin::Slack::Team, required: true
 
     # 抽出タブのスラグを返す
     #
