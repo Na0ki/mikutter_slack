@@ -4,6 +4,7 @@ require 'uri'
 module Plugin::Slack
   module Entity
 
+    # TODO: `foo` や ```hoge``` といった投稿の場合はパースしない
     MessageEntity = Diva::Entity::RegexpEntity.
       #
       # Slackの画像URLのパース

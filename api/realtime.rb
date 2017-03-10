@@ -64,27 +64,29 @@ module Plugin::Slack
     #
     # @param [Hash] data メッセージ
     def receive_message(data)
-      # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
-      # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
-      return unless @defined_time < Time.at(Float(data['ts']).to_i)
-      # 投稿内容が空の場合はスキップ
-      return if data['text'].empty?
-
-      # メッセージの処理
-      api.team.next { |team|
-        Delayer::Deferred.when(
-          team.user(data['user']),
-          team.channel(data['channel'])
-        ).next { |user, channel|
-          message = Plugin::Slack::Message.new(channel: channel,
-                                               user: user,
-                                               text: data['text'],
-                                               created: Time.at(Float(data['ts']).to_i),
-                                               team: team[:name],
-                                               ts: data['ts'])
-          Plugin.call(:extract_receive_message, channel.datasource_slug, [message])
-        }
-      }.trap { |err| error err }
+      case
+        when @defined_time < Time.at(Float(data['ts']).to_i), data['text'].empty?
+          # TODO: 将来的には data['text'].empty なメッセージに対応する
+          # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
+          # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
+          # 投稿内容が空の場合はスキップ
+        else
+          # メッセージの処理
+          api.team.next { |team|
+            Delayer::Deferred.when(
+              team.user(data['user']),
+              team.channel(data['channel'])
+            ).next { |user, channel|
+              message = Plugin::Slack::Message.new(channel: channel,
+                                                   user: user,
+                                                   text: data['text'],
+                                                   created: Time.at(Float(data['ts']).to_i),
+                                                   team: team[:name],
+                                                   ts: data['ts'])
+              Plugin.call(:extract_receive_message, channel.datasource_slug, [message])
+            }
+          }.trap { |err| error err }
+      end
     end
 
 
