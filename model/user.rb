@@ -4,11 +4,21 @@ module Plugin::Slack
   # Userクラス
   # @see https://toshia.github.io/writing-mikutter-plugin/model/2016/09/30/model-usermixin.html
   # @see https://toshia.github.io/writing-mikutter-plugin/model/2016/09/30/model-field.html
+  # @see https://api.slack.com/methods/users.info
   class User < Diva::Model
     include Diva::Model::UserMixin
 
     field.string :id, required: true
     field.string :name, required: true
+    field.bool :deleted
+    field.string :color
+
+    # TODO: implement
+    # field.has :profile, Plugin::Slack::Profile, required: true
+    field.bool :is_admin
+    field.bool :is_owner
+    field.bool :has_2fa
+
     field.has :team, Plugin::Slack::Team, required: true
 
     def idname
