@@ -6,7 +6,7 @@ module Plugin::Slack
 
     field.string :name, required: true
     field.string :url, required: true
-    field.has :image, Retriever::Model, required: true
+    field.has :image, Diva::Model, required: true
 
 
     def perma_link
