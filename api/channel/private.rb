@@ -6,7 +6,7 @@ module Plugin::Slack
 
     class PrivateChannel < Channel
       private def query_list
-        api.client.groups_list['channels']
+        api.client.groups_list['groups']
       end
 
       private def query_history(channel)
