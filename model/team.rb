@@ -55,7 +55,11 @@ module Plugin::Slack
       if cache
         Delayer::Deferred.new.next { cache }
       else
-        api.public_channel.list.next { |c| @channels = c.freeze }
+        public_channels.next { |public|
+          private_channels.next { |private|
+            @channels = (public + private).freeze
+          }
+        }
       end
     end
 
@@ -68,6 +72,38 @@ module Plugin::Slack
     # @return [nil] 取得に失敗した場合
     def channels!
       @channels
+    end
+
+    # このチームの公開チャンネルを列挙する
+    #
+    # @return [Delayer::Deferred::Deferredable] チームの公開チャンネルを引数にcallbackするDeferred
+    def public_channels
+      cache = @public_channels
+      if cache
+        Delayer::Deferred.new.next { cache }
+      else
+        api.public_channel.list.next { |c| @public_channels = c.freeze }
+      end
+    end
+
+    def public_channels!
+      @public_channels
+    end
+
+    # このチームの非公開チャンネルを列挙する
+    #
+    # @return [Delayer::Deferred::Deferredable] チームの非公開チャンネルを引数にcallbackするDeferred
+    def private_channels
+      cache = @private_channels
+      if cache
+        Delayer::Deferred.new.next { cache }
+      else
+        api.private_channel.list.next { |c| @private_channels = c.freeze }
+      end
+    end
+
+    def private_channels!
+      @private_channels
     end
 
     # チャンネルIDに対応するChannelをcallbackするDeferredを返す。
@@ -124,10 +160,7 @@ module Plugin::Slack
       "#{self.class.to_s}(id=#{id}, name=#{name})"
     end
 
-
-    private
-
-    def id_detector(defer, id)
+    private def id_detector(defer, id)
       defer.next { |list| list.find { |o| o.id == id } or Delayer::Deferred.fail(:id_not_found) }
     end
 

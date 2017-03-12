@@ -46,9 +46,12 @@ module Plugin::Slack
         api.team.next { |team| # チームの取得
           team.channels.next { |channels| # チームのチャンネルリストを取得
             Delayer::Deferred.when(*channels.map { |channel|
-              api.public_channel.history(channel).next { |messages|
-                Plugin.call(:extract_receive_message, channel.datasource_slug, messages)
-              }
+              api.public_channel.history(channel).next { |message|
+                Plugin.call(:extract_receive_message, channel.datasource_slug, message)
+              }.trap { |err| error err }
+              api.private_channel.history(channel).next { |message|
+                Plugin.call(:extract_receive_message, channel.datasource_slug, message)
+              }.trap { |err| error err }
             })
           }
         }
