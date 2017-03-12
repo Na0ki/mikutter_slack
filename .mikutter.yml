@@ -1,9 +1,9 @@
 ---
 slug: :slack
 depends:
-  mikutter: 3.5.0
+  mikutter: 3.6.0-develop
   plugin: []
-version: 0.0.3
+version: 0.0.4
 author: ahiru
 name: slack
 description: slack for mikutter
