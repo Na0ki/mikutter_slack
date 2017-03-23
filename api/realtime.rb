@@ -65,10 +65,10 @@ module Plugin::Slack
 
     # 受信したメッセージのデータソースへの投稿
     #
-    # @param [Hash] data メッセージ
-    def receive_message(data)
+    # @param [Hash] message メッセージ
+    def on_receive_message(message)
       case
-        when @defined_time < Time.at(Float(data['ts']).to_i), data['text'].empty?
+        when @defined_time < Time.at(Float(message['ts']).to_i), message['text'].empty?
           # TODO: 将来的には data['text'].empty なメッセージに対応する
           # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
           # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
@@ -77,16 +77,16 @@ module Plugin::Slack
           # メッセージの処理
           api.team.next { |team|
             Delayer::Deferred.when(
-              team.user(data['user']),
-              team.channel(data['channel'])
+              team.user(message['user']),
+              team.channel(message['channel'])
             ).next { |user, channel|
-              message = Plugin::Slack::Message.new(channel: channel,
-                                                   user: user,
-                                                   text: data['text'],
-                                                   created: Time.at(Float(data['ts']).to_i),
-                                                   team: team[:name],
-                                                   ts: data['ts'])
-              Plugin.call(:extract_receive_message, channel.datasource_slug, [message])
+              msg = Plugin::Slack::Message.new(channel: channel,
+                                               user: user,
+                                               text: message['text'],
+                                               created: Time.at(Float(message['ts']).to_i),
+                                               team: team[:name],
+                                               ts: message['ts'])
+              Plugin.call(:extract_receive_message, channel.datasource_slug, [msg])
             }
           }.trap { |err| error err }
       end
@@ -102,8 +102,8 @@ module Plugin::Slack
       # メッセージ書き込み時に呼ばれる
       #
       # @param [Hash] data メッセージ
-      @realtime.on :message do |data|
-        receive_message(data)
+      @realtime.on :message do |message|
+        on_receive_message(message)
       end
     end
 
