@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
+
 # apaではない
 require 'slack'
 require_relative 'api/auth'
@@ -10,6 +12,7 @@ require_relative 'api/emoji'
 
 module Plugin::Slack
   module API
+    # API の親クラス
     class APA
       attr_reader :client
 
@@ -60,7 +63,6 @@ module Plugin::Slack
       memoize def team!
         Plugin::Slack::Team.new(@client.team_info['team'].symbolize.merge(api: self))
       end
-
     end
   end
 end

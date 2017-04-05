@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
+
 require 'uri'
 
 module Plugin::Slack
+  # メッセージのEntityを色々いじる
   module Entity
-
     # TODO: `foo` や ```hoge``` といった投稿の場合はパースしない
     MessageEntity = Diva::Entity::RegexpEntity.
       #
@@ -17,10 +19,12 @@ module Plugin::Slack
       #   after -> https://files.slack.com/files-pri/team_id-random_id/filename
       #
       # FIXME: 画像を開く際にはリクエストヘッダーをつける必要があるが、その処理を追加出来ていない
-      filter(/<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/[\w\-]+\/.+(\.(jpg|jpeg|gif|png|bmp)).*?>/, generator: -> s {
-        matched = /<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<filename>.+?)(?:\|(?<face>.+))?>/.match(s[:url])
+      filter(%r{<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/[\w\-]+\/.+(\.(jpg|jpeg|gif|png|bmp)).*?>}, generator: lambda { |s|
+        matched = %r{<https:\/\/[\w\-]+\.slack\.com\/files\/[\w\-]+\/(?<id>[\w\-]+)\/(?<filename>.+?)(?:\|(?<face>.+))?>}.match(s[:url])
         # 画像のURLを生成
-        url = Diva::URI(URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{matched[:id]}/#{matched[:filename]}")).to_uri.to_s
+        url = Diva::URI(
+          URI.encode("https://files.slack.com/files-pri/#{s[:message].team.id}-#{matched[:id]}/#{matched[:filename]}")
+        ).to_uri.to_s
         s.merge(open: url, face: matched[:face] || url, url: url)
       }).
       #
@@ -30,8 +34,8 @@ module Plugin::Slack
       # @example
       #   before -> <https://github.com>
       #   after -> https://github.com
-      filter(/<https?:\/\/.+?>/, generator: -> s {
-        matched = /<(?<url>https?:\/\/.+?)(?:\|(?<face>.+))?>/.match(s[:url])
+      filter(%r{<https?:\/\/.+?>}, generator: lambda { |s|
+        matched = %r{<(?<url>https?:\/\/.+?)(?:\|(?<face>.+))?>}.match(s[:url])
         s.merge(open: matched[:url], face: matched[:face] || matched[:url], url: matched[:url])
       }).
       #
@@ -40,7 +44,7 @@ module Plugin::Slack
       #
       # @example
       #   <!here|@here> -> @here
-      filter(/<!.+?>/, generator: -> s {
+      filter(/<!.+?>/, generator: lambda { |s|
         matched = /<!(?<id>[A-Za-z]+?)(?:\|(?<name>[!-~]+?))?>/.match(s[:face])
         s.merge(face: matched[:name] || "@#{matched[:id]}")
       }).
@@ -50,7 +54,7 @@ module Plugin::Slack
       #
       # @example
       #   <#channel_id|channel_name> -> #channel_name
-      filter(/<#C.+?>/, generator: -> s {
+      filter(/<#C.+?>/, generator: lambda { |s|
         matched = /<#(?<id>C.+?)\|.+?>/.match(s[:face])
         s[:message].team.channel(matched[:id]).next { |c|
           s[:message].entity.add(s.merge(face: unescape(s[:face]), open: c))
@@ -63,7 +67,7 @@ module Plugin::Slack
       #
       # @example
       #   @hoge -> <user_id> または <user_id|hoge>
-      filter(/<(@(U[\w\-]+)).*?>/, generator: -> s {
+      filter(/<(@(U[\w\-]+)).*?>/, generator: lambda { |s|
         matched = /<(@(?<id>U.+?)(?:\|(?<name>.+))?)>/.match(s[:face])
         name = matched[:name] || "loading(#{matched[:id]})"
 
@@ -87,7 +91,7 @@ module Plugin::Slack
       #
       # @example
       #   :emoji_id: -> emoji_id
-      filter(/:[\w\-]+:/, generator: -> s {
+      filter(/:[\w\-]+:/, generator: lambda { |s|
         matched = /(?<face>:(?<name>[\w\-]+)?:)/.match(s[:face])
         s[:message].team.emoji(matched[:name]).next { |url|
           # 絵文字URLがaliasにされている場合を考慮する
@@ -108,32 +112,30 @@ module Plugin::Slack
       #
       # 上記までの正規表現にマッチしなかった全ての <something> を取得
       # うまくパース出来ていないということになるので、error出力している
-      filter(/<(.*)>/, generator: -> s {
+      filter(/<(.*)>/, generator: lambda { |s|
         error "Did not match any regex: #{s[:face]}"
         s
       })
 
-
-    private
-
-
     # @see https://github.com/slack-ruby/slack-ruby-client/blob/master/lib/slack/messages/formatting.rb
     def self.unescape(message)
-      CGI.unescapeHTML(message.gsub(/[“”]/, '"')
-                         .gsub(/[‘’]/, "'")
-                         .gsub(/<(?<sign>[?@#!]?)(?<dt>.*?)>/) { |_|
-        sign = $~[:sign]
-        dt = $~[:dt]
-        rhs = dt.split('|', 2).last
-        case sign
+      CGI.unescapeHTML(
+        message.gsub(/[“”]/, '"')
+          .gsub(/[‘’]/, "'")
+          .gsub(/<(?<sign>[?@#!]?)(?<dt>.*?)>/) { |_|
+          sign = $LAST_MATCH_INFO[:sign]
+          dt = $LAST_MATCH_INFO[:dt]
+          rhs = dt.split('|', 2).last
+          case sign
           when '@', '!'
             "@#{rhs}"
           when '#'
             "##{rhs}"
           else
             rhs
-        end
-      })
+          end
+        }
+      )
     end
   end
 end

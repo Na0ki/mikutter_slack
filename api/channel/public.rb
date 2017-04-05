@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
+
 require_relative 'channel'
 
 module Plugin::Slack
   module API
-
+    # Public Channel API
     class PublicChannel < Channel
       private def query_list
         channels = api.client.channels_list
@@ -17,6 +19,5 @@ module Plugin::Slack
         history['messages']
       end
     end
-
   end
 end

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
+
 require 'yaml'
 
 module Plugin::Slack
   module Environment
-
     ###################
     # App Information #
     ###################
@@ -20,17 +21,15 @@ module Plugin::Slack
     SLACK_OAUTH_SCOPE = 'client'
     SLACK_OAUTH_STATE = 'mikutter_slack'
 
-
     ################################
     # Oauth Redirect Server Config #
     ################################
     SLACK_REDIRECT_URI = 'http://localhost:8080/'
     SLACK_DOCUMENT_ROOT = File.join(__dir__, '..', 'www/')
     SLACK_SERVER_CONFIG = {
-        :DocumentRoot => SLACK_DOCUMENT_ROOT,
-        :BindAddress => 'localhost',
-        :Port => 8080
-    }
-
+      DocumentRoot: SLACK_DOCUMENT_ROOT,
+      BindAddress: 'localhost',
+      Port: 8080
+    }.freeze
   end
 end

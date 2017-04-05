@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
+
 require_relative '../object'
 
 module Plugin::Slack
   module API
-
     # チャンネルの親クラス
     class Channel < Object
       # チャンネルリスト返す
@@ -14,7 +15,7 @@ module Plugin::Slack
           team,
           request_thread(:list) { query_list }
         ).next { |team, channels_hash|
-          channels_hash.map { |_| Plugin::Slack::Channel.new(_.symbolize.merge(team: team)) }
+          channels_hash.map { |c| Plugin::Slack::Channel.new(c.symbolize.merge(team: team)) }
         }
       end
 
@@ -23,7 +24,7 @@ module Plugin::Slack
       #
       # @return [Delayer::Deferred::Deferredable] チームの全チャンネルを引数にcallbackするDeferred
       def dict
-        list.next { |ary| Hash[ary.map { |_| [_.id, _] }] }
+        list.next { |ary| Hash[ary.map { |c| [c.id, c] }] }
       end
 
       # 指定したChannelのヒストリを取得
@@ -32,11 +33,11 @@ module Plugin::Slack
       # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
       def history(channel)
         Delayer::Deferred.when(
-          team.next { |t| t.user_dict },
+          team.next(&:user_dict),
           Thread.new { query_history(channel) }
         ).next { |users, histories|
           histories.select { |history|
-            users.has_key?(history['user'])
+            users.key?(history['user'])
           }.map { |history|
             Plugin::Slack::Message.new(channel: channel,
                                        user: users[history['user']],
@@ -55,8 +56,6 @@ module Plugin::Slack
       def post(channel, text)
         Thread.new { api.client.chat_postMessage(channel: channel.id, text: text, as_user: true) }
       end
-
     end
-
   end
 end

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
+
 require 'slack'
 require_relative 'model'
 require_relative 'api'
@@ -20,12 +22,11 @@ Plugin.create(:slack) do
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|
-    unless @team.nil? and @team.channels!.nil?
+    unless @team&.channels!.nil?
       @team.channels!.each { |channel| ds[channel.datasource_slug] = channel.datasource_name }
     end
     [ds]
   end
-
 
   # 認証をブロードキャストする
   # @example Plugin.call(:slack_auth)
@@ -34,7 +35,6 @@ Plugin.create(:slack) do
       start_realtime
     }.trap { |err| error err }
   end
-
 
   # 投稿をブロードキャストする
   # @example Plugin.call(:slack_post, channel_name, message)
@@ -45,15 +45,13 @@ Plugin.create(:slack) do
     }.next { |res|
       notice "Slack:#{channel_name}に投稿しました: #{res}"
     }.trap { |err|
-      error "[#{self.class.to_s}] Slack:#{channel_name}への投稿に失敗しました: #{err}"
+      error "[#{self.class}] Slack:#{channel_name}への投稿に失敗しました: #{err}"
     }
   end
-
 
   # mikutter設定画面
   # @see http://mikutter.blogspot.jp/2012/12/blog-post.html
   settings('Slack') do
-
     settings('OAuth認証') do
       auth = Gtk::Button.new('認証する')
       auth.signal_connect('clicked') { Plugin.call(:slack_auth) }
@@ -64,18 +62,15 @@ Plugin.create(:slack) do
       input('トークン', :slack_token)
     end
 
-    about(_('%s について' % Plugin::Slack::Environment::NAME), {
-      :program_name => _('%s' % Plugin::Slack::Environment::NAME),
-      :copyright => _('2016-%s Naoki Maeda') % '2017',
-      :version => Plugin::Slack::Environment::VERSION,
-      :comments => _("サードパーティー製Slackクライアントの標準を夢見るmikutterプラグイン。\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
-      :license => (file_get_contents('./LICENSE') rescue nil),
-      :website => _('https://github.com/Na0ki/mikutter_slack.git'),
-      :authors => %w(ahiru3net toshi_a),
-      :artists => %w(ahiru3net),
-      :documenters => %w(ahiru3net toshi_a)
-    })
-
+    about('%s について' % Plugin::Slack::Environment::NAME,
+          program_name: Plugin::Slack::Environment::NAME,
+          copyright: '2016-2017 Naoki Maeda',
+          version: Plugin::Slack::Environment::VERSION,
+          comments: "サードパーティー製Slackクライアントの標準を夢見るmikutterプラグイン。\nこのプラグインは MIT License によって浄化されています。",
+          license: (file_get_contents('./LICENSE') rescue nil),
+          website: 'https://github.com/Na0ki/mikutter_slack.git',
+          authors: %w(ahiru3net toshi_a),
+          artists: %w(ahiru3net),
+          documenters: %w(ahiru3net toshi_a))
   end
-
 end

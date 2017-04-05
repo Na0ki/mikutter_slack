@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
+
 require_relative '../api/channel/public'
 
 # Team Model
 # @see https://api.slack.com/methods/team.info
 module Plugin::Slack
+  # チーム Model
   class Team < Diva::Model
-
     field.string :id, required: true
     field.string :name, required: true
     field.string :domain, required: true
@@ -145,7 +147,7 @@ module Plugin::Slack
     # @param [String] emoji_name emoji名
     # @return [Delayer::Deferred::Deferredable] EmojiのURLを引数にcallbackするDeferred
     def emoji(emoji_name)
-      emojis.next { |e| e[emoji_name] or Delayer::Deferred.fail(:emoji_not_found) }
+      emojis.next { |e| e[emoji_name] || Delayer::Deferred.fail(:emoji_not_found) }
     end
 
     def perma_link
@@ -157,12 +159,11 @@ module Plugin::Slack
     end
 
     def inspect
-      "#{self.class.to_s}(id=#{id}, name=#{name})"
+      "#{self.class}(id=#{id}, name=#{name})"
     end
 
     private def id_detector(defer, id)
-      defer.next { |list| list.find { |o| o.id == id } or Delayer::Deferred.fail(:id_not_found) }
+      defer.next { |list| list.find { |o| o.id == id } || Delayer::Deferred.fail(:id_not_found) }
     end
-
   end
 end

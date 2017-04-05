@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
 
 module Plugin::Slack
-
   # Channelのモデル
   # @see https://api.slack.com/methods/channels.info
   class Channel < Diva::Model
@@ -68,7 +68,7 @@ module Plugin::Slack
     end
 
     def inspect
-      "#{self.class.to_s}(id=#{id}, name=#{name})"
+      "#{self.class}(id=#{id}, name=#{name})"
     end
   end
 end

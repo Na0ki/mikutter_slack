@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
 
 module Plugin::Slack
+  # RTM API
   class Realtime
     attr_reader :api
 
@@ -12,7 +14,6 @@ module Plugin::Slack
       @realtime = @api.client.realtime
       @defined_time = Time.new
     end
-
 
     # Realtime APIに実際に接続する
     #
@@ -26,8 +27,24 @@ module Plugin::Slack
       self
     end
 
-
     private
+
+    # RTM のインスタンス生成時に取得できる情報をモデルに格納する
+    def modelize
+      Thread.new(@realtime.instance_variable_get('@response')) { |res|
+        Delayer::Deferred.fail(res['error']) unless res['ok']
+        #
+        # team = res['team']          # Object
+        # channels = res['channels']  # Array
+        # groups = res['groups']      # Array
+        # ims = res['ims']            # Array
+        # users = res['users']        # Array
+        # bots = res['bots']          # Array
+        #
+        # channels.each { |c| p c }
+        # bots.each { |bot| p bot }
+      }
+    end
 
     # 接続時の処理
     #   * 認証テスト
@@ -62,36 +79,29 @@ module Plugin::Slack
       }
     end
 
-
     # 受信したメッセージのデータソースへの投稿
     #
     # @param [Hash] message メッセージ
     def on_receive_message(message)
-      case
-        when @defined_time < Time.at(Float(message['ts']).to_i), message['text'].empty?
-          # TODO: 将来的には data['text'].empty なメッセージに対応する
-          # 起動時間より前のタイムスタンプの場合は何もしない（ヒストリからとってこれる）
-          # 起動時に最新の一件の投稿が呼ばれるが、その際に on :message が呼ばれてしまうのでその対策
-          # 投稿内容が空の場合はスキップ
-        else
-          # メッセージの処理
-          api.team.next { |team|
-            Delayer::Deferred.when(
-              team.user(message['user']),
-              team.channel(message['channel'])
-            ).next { |user, channel|
-              msg = Plugin::Slack::Message.new(channel: channel,
-                                               user: user,
-                                               text: message['text'],
-                                               created: Time.at(Float(message['ts']).to_i),
-                                               team: team[:name],
-                                               ts: message['ts'])
-              Plugin.call(:extract_receive_message, channel.datasource_slug, [msg])
-            }
-          }.trap { |err| error err }
-      end
-    end
+      # 起動前や中身が空の場合は何もしない
+      return if @defined_time > Time.at(Float(message['ts']).to_i) || message['text'].empty?
 
+      # メッセージの処理
+      api.team.next { |team|
+        Delayer::Deferred.when(
+          team.user(message['user']),
+          team.channel(message['channel'])
+        ).next { |user, channel|
+          msg = Plugin::Slack::Message.new(channel: channel,
+                                           user: user,
+                                           text: message['text'],
+                                           created: Time.at(Float(message['ts']).to_i),
+                                           team: team[:name],
+                                           ts: message['ts'])
+          Plugin.call(:extract_receive_message, channel.datasource_slug, [msg])
+        }
+      }.trap { |err| error err }
+    end
 
     def setup
       # 接続時に呼ばれる
@@ -106,6 +116,5 @@ module Plugin::Slack
         on_receive_message(message)
       end
     end
-
   end
 end

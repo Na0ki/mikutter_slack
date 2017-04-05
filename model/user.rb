@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
 
 module Plugin::Slack
   # Userクラス
@@ -34,7 +35,7 @@ module Plugin::Slack
     end
 
     def inspect
-      "#{self.class.to_s}(id = #{id}, name = #{name})"
+      "#{self.class}(id = #{id}, name = #{name})"
     end
   end
 end

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
+
 require_relative '../entity/message_entity'
 require_relative '../model/user'
 require_relative '../model/channel'
@@ -7,6 +9,7 @@ require_relative '../model/channel'
 # @see https://toshia.github.io/writing-mikutter-plugin/model/2016/09/30/model-messagemixin.html
 # @see https://toshia.github.io/writing-mikutter-plugin/model/2016/09/30/model-field.html
 module Plugin::Slack
+  # メッセージ Model
   class Message < Diva::Model
     include Diva::Model::MessageMixin
 
@@ -22,7 +25,7 @@ module Plugin::Slack
     entity_class Diva::Entity::URLEntity
     entity_class Plugin::Slack::Entity::MessageEntity
 
-    alias_method :description, :text
+    alias description text
 
     # このMessageが所属するTeam
     #
@@ -35,11 +38,11 @@ module Plugin::Slack
     #
     # @return [Retriever::URI] リンク
     def perma_link
-      Diva::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.gsub('.', '')}")
+      Diva::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.delete('.')}")
     end
 
     def inspect
-      "#{self.class.to_s}(channel=#{channel.to_s}, user=#{user.to_s})"
+      "#{self.class}(channel=#{channel}, user=#{user})"
     end
   end
 end

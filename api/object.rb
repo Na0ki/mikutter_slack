@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+# -*- frozen_string_literal: true -*-
+
 module Plugin::Slack
   module API
+    # 基底クラス
     class Object
       attr_reader :parent
-      alias_method :api, :parent
+      alias api parent
 
       def initialize(parent)
         @parent = parent
@@ -13,20 +16,19 @@ module Plugin::Slack
         parent.team
       end
 
-
       private
 
       # TODO: comment
       #
       # @param [Symbol] identity
       # @param [callback]
-      def request_thread(identity, &block)
+      def request_thread(identity)
         promise = Delayer.Deferred.new(true)
         request_thread_pool(identity).new do
           begin
-            result = request_thread_cache[identity] ||= block.call
+            result = request_thread_cache[identity] ||= yield
             promise.call(result)
-          rescue Exception => err
+          rescue StandardError => err
             promise.fail(err)
           end
         end
@@ -46,6 +48,5 @@ module Plugin::Slack
         @request_thread_cache ||= TimeLimitedStorage.new(Symbol)
       end
     end
-
   end
 end
