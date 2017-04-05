@@ -105,9 +105,9 @@ module Plugin::Slack
           end
         }.trap { |err|
           error err
-          s[:message].entity.add(s.merge(open: 'http://totori.dip.jp/', url: 'http://totori.dip.jp/', face: matched[:name]))
+          s[:message].entity.add(s.merge(open: Skin['notfound.png'], face: matched[:name]))
         }
-        s.merge(open: 'http://totori.dip.jp/', url: 'http://totori.dip.jp/', face: matched[:name])
+        s.merge(open: Skin['notfound.png'], face: matched[:name])
       }).
       #
       # 上記までの正規表現にマッチしなかった全ての <something> を取得
