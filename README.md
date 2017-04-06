@@ -63,13 +63,13 @@ mikutterのgitリポジトリURLはこちら -> git://toshia.dip.jp/mikutter.git
 | name      |      version  |
 |:----------|--------------:|
 |mikutter   | 3.6.0-develop |
-|ruby       |         2.2.6 |
+|ruby       |         2.3.0 |
 
 ### 推奨要件
 | name      |      version  |
 |:----------|--------------:|
 |mikutter   | 3.6.0-develop |
-|ruby       |         2.4.0 |
+|ruby       |         2.4.1 |
 
 ## ライセンス
 [MIT LICENSE](/LICENSE)
