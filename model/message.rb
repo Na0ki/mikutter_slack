@@ -41,6 +41,14 @@ module Plugin::Slack
       Diva::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.delete('.')}")
     end
 
+    # 返信可能なメッセージかどうか
+    # TODO: そのうち返信できる仕組みを作って repliable にする
+    #
+    # @return false
+    def repliable?
+      false
+    end
+
     def inspect
       "#{self.class}(channel=#{channel}, user=#{user})"
     end
