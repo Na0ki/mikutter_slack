@@ -67,8 +67,8 @@ Plugin.create(:slack) do
           comments: "サードパーティー製Slackクライアントの標準を夢見るmikutterプラグイン。\nこのプラグインは MIT License によって浄化されています。",
           license: (file_get_contents('./LICENSE') rescue nil),
           website: 'https://github.com/Na0ki/mikutter_slack.git',
-          authors: %w(ahiru3net toshi_a),
-          artists: %w(ahiru3net),
-          documenters: %w(ahiru3net toshi_a))
+          authors: %w[ahiru3net toshi_a],
+          artists: %w[ahiru3net],
+          documenters: %w[ahiru3net toshi_a])
   end
 end
