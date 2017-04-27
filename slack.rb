@@ -34,6 +34,10 @@ Plugin.create(:slack) do
     }.trap { |err| error err }
   end
 
+  on_slack_boot_callback_server do
+    Plugin::Slack::API::Auth.boot_callback_server
+  end
+
   # 投稿をブロードキャストする
   # @example Plugin.call(:slack_post, channel_name, message)
   on_slack_post do |channel_name, message|
