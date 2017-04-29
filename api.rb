@@ -23,7 +23,11 @@ module Plugin::Slack
 
       # Realtime APIに接続する
       def realtime_start
-        @realtime ||= Plugin::Slack::Realtime.new(self).start
+        @realtime ||= Thread.new{
+          Plugin::Slack::Realtime.new(self).start
+        }.trap{|err|
+          error err
+        }
       end
 
       # チームを取得する

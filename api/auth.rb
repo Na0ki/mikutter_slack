@@ -29,7 +29,7 @@ module Plugin::Slack
 
       class << self
         # 認証用のURLを取得するDeferredを生成して返す
-        def request_authorize_url
+        def request_authorize_url(registered_promise=nil)
           Thread.new {
           client = HTTPClient.new
           client.get(Plugin::Slack::Environment::SLACK_AUTHORIZE_URI,
@@ -42,7 +42,7 @@ module Plugin::Slack
                      'Content-Type' => 'application/json')
           }.next { |response|
             Delayer::Deferred.fail(response) unless response.status_code == 302
-            Plugin.call(:slack_boot_callback_server)
+            boot_callback_server(registered_promise)
             redirect_uri(response.header['location'][0])
           }
         end
@@ -79,7 +79,7 @@ module Plugin::Slack
           end
         end
 
-        def boot_callback_server
+        def boot_callback_server(registered_promise)
           Thread.new {
             # WebRickでOAuthリダイレクト待ち受け
             @server = WEBrick::HTTPServer.new(Plugin::Slack::Environment::SLACK_SERVER_CONFIG)
@@ -93,7 +93,7 @@ module Plugin::Slack
 
               # アクセストークンの取得
               oauth_access(query['code'][0]).next { |token|
-                UserConfig['slack_token'] = token
+                registered_promise&.call(token)
                 @server.shutdown
               }.trap { |err| error err }
             end
