@@ -8,6 +8,9 @@ require_relative '../api/channel/public'
 module Plugin::Slack
   # チーム Model
   class Team < Diva::Model
+
+    register :slack_team, name: "Slackのチーム"
+
     field.string :id, required: true
     field.string :name, required: true
     field.string :domain, required: true
