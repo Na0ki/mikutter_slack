@@ -10,7 +10,7 @@ module Plugin::Slack
     field.string :id, required: true
     field.string :name, required: true
 
-    field.string :created
+    field.time :created
     field.string :creator
 
     field.bool :is_archived

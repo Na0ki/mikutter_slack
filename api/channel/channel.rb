@@ -15,7 +15,10 @@ module Plugin::Slack
           team,
           request_thread(:list) { query_list }
         ).next { |team, channels_hash|
-          channels_hash.map { |c| Plugin::Slack::Channel.new(c.symbolize.merge(team: team)) }
+          channels_hash.map(&:symbolize).map { |c|
+            Plugin::Slack::Channel.new(c.merge(team: team,
+                                               created: Time.at(c[:created].to_i)))
+          }
         }
       end
 
