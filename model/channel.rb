@@ -69,7 +69,7 @@ module Plugin::Slack
     #
     # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
     def history
-      team.api.channel.history(self)
+      team.api.public_channel.history(self)
     end
 
     # メッセージの投稿
