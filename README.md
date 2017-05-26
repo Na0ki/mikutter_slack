@@ -72,4 +72,5 @@ mikutterのgitリポジトリURLはこちら -> git://toshia.dip.jp/mikutter.git
 |ruby       |         2.4.1 |
 
 ## ライセンス
-[MIT LICENSE](/LICENSE)
+このプラグインは [MIT LICENSE](/LICENSE) によって浄化されています。
+
