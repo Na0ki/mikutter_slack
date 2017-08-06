@@ -2,4 +2,4 @@
 
 source 'https://rubygems.org'
 
-gem 'slack-api', '1.5'
+gem 'slack-api', '1.6'
