@@ -5,7 +5,6 @@ require 'slack'
 require 'uri'
 require 'cgi'
 require 'json'
-require 'httpclient'
 require 'webrick'
 require_relative '../config/environment'
 
@@ -43,7 +42,7 @@ module Plugin::Slack
           }.next { |response|
             Delayer::Deferred.fail(response) unless response.status_code == 302
             boot_callback_server(registered_promise)
-            redirect_uri(response.header['location'][0])
+            response.header['location'][0]
           }
         end
 
@@ -69,14 +68,6 @@ module Plugin::Slack
             notice "scope: #{result[:scope]}, user_id: #{result[:user_id]}, team_name: #{result[:team_name]}, team_id: #{result[:team_id]}"
             result[:access_token]
           }
-        end
-
-        def redirect_uri(uri)
-          if uri.include?('https://slack.com')
-            URI.decode(uri)
-          else
-            "https://slack.com#{URI.decode(uri)}"
-          end
         end
 
         def boot_callback_server(registered_promise)
