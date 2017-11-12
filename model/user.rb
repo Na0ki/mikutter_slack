@@ -26,8 +26,12 @@ module Plugin::Slack
       name
     end
 
-    def profile_image_url
-      self[:profile][:image_48]
+    def icon
+      _, photos = Plugin.filtering(:photo_filter, self[:profile][:image_48], [])
+      photos.first
+    rescue => err
+      #error err
+      Skin['notfound.png']
     end
 
     def perma_link

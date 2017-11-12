@@ -41,12 +41,17 @@ module Plugin::Slack
       Diva::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.delete('.')}")
     end
 
-    # 返信可能なメッセージかどうか
-    # TODO: そのうち返信できる仕組みを作って repliable にする
-    #
-    # @return false
-    def repliable?
-      false
+    def postable?(world=nil)
+      world, = Plugin.filtering(:world_current, nil) unless world
+      world.class.slug == :slack and world.team == team
+    end
+
+    def post(to: nil, message:, **kwrest)
+      responder = Array(to).first
+      responder, = Plugin.filtering(:world_current, nil) unless responder
+      if responder.is_a?(Diva::Model) and responder.class.slug == :slack
+        responder.post(to: [channel], message: message, **kwrest)
+      end
     end
 
     def inspect

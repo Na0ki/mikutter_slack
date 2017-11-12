@@ -5,7 +5,6 @@ require 'slack'
 require 'uri'
 require 'cgi'
 require 'json'
-require 'httpclient'
 require 'webrick'
 require_relative '../config/environment'
 
@@ -22,51 +21,31 @@ module Plugin::Slack
       # @return [Delayer::Deferred::Deferredable] なんかを引数にcallbackするDeferred
       # @see {https://api.slack.com/docs/oauth}
       def self.oauth
-        # hTTPClientの設定
-        client = HTTPClient.new
-        query = {
-          client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
-          scope: Plugin::Slack::Environment::SLACK_OAUTH_SCOPE,
-          redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI,
-          state: Plugin::Slack::Environment::SLACK_OAUTH_STATE
-        }.to_hash
-        Thread.new(client) { |c|
-          c.get(Plugin::Slack::Environment::SLACK_AUTHORIZE_URI, :query => query, 'Content-Type' => 'application/json')
-        }.next { |response|
-          Delayer::Deferred.fail(response) unless response.status_code == 302
-          # OAuth認証用ページへのリダイレクトURLを開く
-          Plugin.call(:open, redirect_uri(response.header['location'][0]))
-          Thread.new {
-            # WebRickでOAuthリダイレクト待ち受け
-            @server = WEBrick::HTTPServer.new(Plugin::Slack::Environment::SLACK_SERVER_CONFIG)
-            @server.mount_proc('/') do |_, res|
-              Delayer::Deferred.fail(res) unless res.status == 200
-              query = CGI.parse(res.request_uri.query)
-              # ローカルのHTMLを表示
-              res.body = open(File.join(Plugin::Slack::Environment::SLACK_DOCUMENT_ROOT, 'index.html'))
-              res.content_type = 'text/html'
-              res.chunked = true
-
-              # アクセストークンの取得
-              oauth_access(query['code'][0]).next { |token|
-                UserConfig['slack_token'] = token
-                @server.shutdown
-              }.trap { |err| error err }
-            end
-            trap('INT') { @server.shutdown }
-            @server.start
-          }.trap { |err| error err }
+        request_authorize_url.next { |url|
+          Plugin.call(:open, url)
         }
       end
 
-      # 認証テスト
-      #
-      # @return [Delayer::Deferred::Deferredable] 認証結果を引数にcallbackするDeferred
-      def auth_test
-        Thread.new { @client.auth_test }
-      end
-
       class << self
+        # 認証用のURLを取得するDeferredを生成して返す
+        def request_authorize_url(registered_promise=nil)
+          Thread.new {
+          client = HTTPClient.new
+          client.get(Plugin::Slack::Environment::SLACK_AUTHORIZE_URI,
+                     :query => {
+                       client_id: Plugin::Slack::Environment::SLACK_CLIENT_ID,
+                       scope: Plugin::Slack::Environment::SLACK_OAUTH_SCOPE,
+                       redirect_uri: Plugin::Slack::Environment::SLACK_REDIRECT_URI,
+                       state: Plugin::Slack::Environment::SLACK_OAUTH_STATE
+                     },
+                     'Content-Type' => 'application/json')
+          }.next { |response|
+            Delayer::Deferred.fail(response) unless response.status_code == 302
+            boot_callback_server(registered_promise)
+            response.header['location'][0]
+          }
+        end
+
         # OAuthのコールバックで得たcodeを用いてaccess_tokenを取得する
         #
         # @param [String] code コールバックコード
@@ -91,14 +70,37 @@ module Plugin::Slack
           }
         end
 
-        def redirect_uri(uri)
-          if uri.include?('https://slack.com')
-            URI.decode(uri)
-          else
-            "https://slack.com#{URI.decode(uri)}"
-          end
+        def boot_callback_server(registered_promise)
+          Thread.new {
+            # WebRickでOAuthリダイレクト待ち受け
+            @server = WEBrick::HTTPServer.new(Plugin::Slack::Environment::SLACK_SERVER_CONFIG)
+            @server.mount_proc('/') do |_, res|
+              next unless res.status == 200
+              query = CGI.parse(res.request_uri.query)
+              # ローカルのHTMLを表示
+              res.body = open(File.join(Plugin::Slack::Environment::SLACK_DOCUMENT_ROOT, 'index.html'))
+              res.content_type = 'text/html'
+              res.chunked = true
+
+              # アクセストークンの取得
+              oauth_access(query['code'][0]).next { |token|
+                registered_promise&.call(token)
+                @server.shutdown
+              }.trap { |err| error err }
+            end
+            trap('INT') { @server.shutdown }
+            @server.start
+          }.trap { |err| error err }
         end
       end
+
+      # 認証テスト
+      #
+      # @return [Delayer::Deferred::Deferredable] 認証結果を引数にcallbackするDeferred
+      def auth_test
+        Thread.new { @client.auth_test }
+      end
+
     end
   end
 end

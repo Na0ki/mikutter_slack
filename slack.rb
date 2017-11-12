@@ -22,7 +22,13 @@ Plugin.create(:slack) do
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|
-    @team&.channels!&.each { |channel| ds[channel.datasource_slug] = channel.datasource_name }
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.select{|world|
+      world.class.slug == :slack
+    }.each{|world|
+      world.team&.channels!&.each { |channel| ds[channel.datasource_slug] = channel.datasource_name }
+    }
     [ds]
   end
 
@@ -34,32 +40,33 @@ Plugin.create(:slack) do
     }.trap { |err| error err }
   end
 
-  # 投稿をブロードキャストする
-  # @example Plugin.call(:slack_post, channel_name, message)
-  on_slack_post do |channel_name, message|
-    # Slackにメッセージの投稿
-    @team.channels.next { |channels|
-      channels.find { |c| c.name == channel_name }.post(message)
-    }.next { |res|
-      notice "Slack:#{channel_name}に投稿しました: #{res}"
-    }.trap { |err|
-      error "[#{self.class}] Slack:#{channel_name}への投稿に失敗しました: #{err}"
-    }
+  world_setting(:slack, 'Slack') do
+    promise = Delayer::Deferred.new(true)
+    url = await(Plugin::Slack::API::Auth.request_authorize_url(promise))
+    label "認証用のURLをブラウザで開きました。\nブラウザでSlackにログインし、連携したいチームを選択してください。"
+    Plugin.call(:open, url)
+    token = await(promise)
+    world = await(Plugin::Slack::World.build(token))
+    label "#{world.team.name}(#{world.team.domain}) チームの #{world.user.name} としてログインしますか？"
+    world
   end
+
+  # # 投稿をブロードキャストする
+  # # @example Plugin.call(:slack_post, channel_name, message)
+  # on_slack_post do |channel_name, message|
+  #   # Slackにメッセージの投稿
+  #   @team.channels.next { |channels|
+  #     channels.find { |c| c.name == channel_name }.post(message)
+  #   }.next { |res|
+  #     notice "Slack:#{channel_name}に投稿しました: #{res}"
+  #   }.trap { |err|
+  #     error "[#{self.class}] Slack:#{channel_name}への投稿に失敗しました: #{err}"
+  #   }
+  # end
 
   # mikutter設定画面
   # @see http://mikutter.blogspot.jp/2012/12/blog-post.html
   settings('Slack') do
-    settings('OAuth認証') do
-      auth = Gtk::Button.new('認証する')
-      auth.signal_connect('clicked') { Plugin.call(:slack_auth) }
-      closeup auth
-    end
-
-    settings('開発者専用') do
-      input('トークン', :slack_token)
-    end
-
     about('%s について' % Plugin::Slack::Environment::NAME,
           program_name: Plugin::Slack::Environment::NAME,
           copyright: '2016-2017 Naoki Maeda',

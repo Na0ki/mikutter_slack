@@ -5,12 +5,15 @@ module Plugin::Slack
   # Channelのモデル
   # @see https://api.slack.com/methods/channels.info
   class Channel < Diva::Model
+    include Diva::Model::MessageMixin
+    include Diva::Model::UserMixin
+
     register :slack_channel, name: 'Slack Channel'
 
     field.string :id, required: true
     field.string :name, required: true
 
-    field.string :created
+    field.time :created
     field.string :creator
 
     field.bool :is_archived
@@ -32,6 +35,22 @@ module Plugin::Slack
 
     field.has :team, Plugin::Slack::Team, required: true
 
+    def icon
+      Enumerator.new{|y| Plugin.filtering(:photo_filter, 'https://a.slack-edge.com/0499/img/ico/favicon.ico', y)}.first
+    end
+
+    def idname
+      name
+    end
+
+    def user
+      self
+    end
+
+    def description
+      name
+    end
+
     # 抽出タブのスラグを返す
     #
     # @return [String] スラグ
@@ -50,7 +69,7 @@ module Plugin::Slack
     #
     # @return [Delayer::Deferred::Deferredable] チャンネルの最新のMessageの配列を引数にcallbackするDeferred
     def history
-      team.api.channel.history(self)
+      team.api.public_channel.history(self)
     end
 
     # メッセージの投稿
