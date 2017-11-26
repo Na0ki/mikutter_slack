@@ -38,6 +38,10 @@ module Plugin::Slack
       Diva::URI("https://#{team.domain}.slack.com/team/#{name}")
     end
 
+    def to_s
+      name
+    end
+
     def inspect
       "#{self.class}(id = #{id}, name = #{name})"
     end
