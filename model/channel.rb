@@ -75,8 +75,10 @@ module Plugin::Slack
     # メッセージの投稿
     #
     # @param [String] text 投稿メッセージ
+    # @deprecated Use compose spell instead.
     def post(text)
-      team.api.channel.post(self, text)
+      world, = Plugin.filtering(:world_current, nil) unless world
+      Plugin[:slack].compose(self, world, body: text)
     end
 
     # チャンネルのリンクを返す
