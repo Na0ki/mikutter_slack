@@ -5,6 +5,8 @@ module Plugin::Slack
   module API
     # 基底クラス
     class Object
+      extend Memoist
+
       attr_reader :parent
       alias api parent
 

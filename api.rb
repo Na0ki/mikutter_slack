@@ -14,6 +14,8 @@ module Plugin::Slack
   module API
     # API の親クラス
     class APA
+      extend Memoist
+
       attr_reader :client
 
       # @param [String] token APIトークン
