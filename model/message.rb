@@ -41,17 +41,16 @@ module Plugin::Slack
       Diva::URI("https://#{team.domain}.slack.com/archives/#{channel.name}/p#{ts.delete('.')}")
     end
 
+    # @deprecated Use compose spell instead.
     def postable?(world=nil)
       world, = Plugin.filtering(:world_current, nil) unless world
-      world.class.slug == :slack and world.team == team
+      Plugin[:slack].compose?(self, world)
     end
 
+    # @deprecated Use compose spell instead.
     def post(to: nil, message:, **kwrest)
-      responder = Array(to).first
-      responder, = Plugin.filtering(:world_current, nil) unless responder
-      if responder.is_a?(Diva::Model) and responder.class.slug == :slack
-        responder.post(to: [channel], message: message, **kwrest)
-      end
+      world, = Plugin.filtering(:world_current, nil)
+      Plugin[:slack].compose(self, world, body: message)
     end
 
     def inspect

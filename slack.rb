@@ -19,6 +19,25 @@ Plugin.create(:slack) do
   # slack api インスタンス作成
   start_realtime
 
+  defspell(:compose, :slack, :slack_channel,
+           condition: ->(slack, channel){
+             slack.team == channel.team
+           }) do |slack, channel, body:|
+    Thread.new{
+      slack.api.client.chat_postMessage(channel: channel.id, text: body, as_user: true)
+    }
+  end
+
+  defspell(:compose, :slack, :slack_message,
+           condition: ->(slack, message){
+             slack.team == message.team
+           }) do |slack, message, body:|
+    Thread.new{
+      slack.api.client.chat_postMessage(channel: message.channel.id, text: body, as_user: true)
+    }
+  end
+
+
   # 抽出データソース
   # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
   filter_extract_datasources do |ds|

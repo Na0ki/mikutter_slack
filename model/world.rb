@@ -62,27 +62,14 @@ module Plugin::Slack
                   })
     end
 
+    # @deprecated Use compose spell instead.
     def post(to: nil, message:, **kwrest)
-      responders = Array(to)
-      case
-      when responders.size == 1 && responders.first.class.slug == :slack_channel
-        Thread.new{
-          api.client.chat_postMessage(channel: responders.first.id, text: message, as_user: true)
-        }
-      when responders.size == 1 && responders.first.class.slug == :slack_message
-        Thread.new{
-          api.client.chat_postMessage(channel: responders.first.channel.id, text: message, as_user: true)
-        }
-      end if responders.first.is_a?(Diva::Model)
+      Plugin[:slack].compose(self, to, body: message)
     end
 
+    # @deprecated Use compose spell instead.
     def postable?(target=nil)
-      case target
-      when Plugin::Slack::Channel
-        target.team == team
-      when Plugin::Slack::Message
-        target.team == team
-      end
+      Plugin[:slack].compose?(self, target)
     end
 
     def inspect

@@ -2,7 +2,9 @@
 slug: :slack
 depends:
   mikutter: 3.6.0-develop
-  plugin: []
+  plugin:
+    - world
+    - spell
 version: 0.2.0
 author: ahiru
 name: slack
