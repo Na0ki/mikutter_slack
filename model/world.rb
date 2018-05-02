@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require_relative '../api'
 module Plugin::Slack
   class World < Diva::Model
