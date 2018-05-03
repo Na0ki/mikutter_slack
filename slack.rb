@@ -15,85 +15,8 @@ Plugin.create(:slack) do
     }.trap { |err| error err }
   end
 
+  require_relative 'apimiku/apimiku'
+
   # slack api インスタンス作成
   start_realtime
-
-  defspell(:compose, :slack, :slack_channel,
-           condition: ->(slack, channel){
-             slack.team == channel.team
-           }) do |slack, channel, body:|
-    Thread.new{
-      slack.api.client.chat_postMessage(channel: channel.id, text: body, as_user: true)
-    }
-  end
-
-  defspell(:compose, :slack, :slack_message,
-           condition: ->(slack, message){
-             slack.team == message.team
-           }) do |slack, message, body:|
-    Thread.new{
-      slack.api.client.chat_postMessage(channel: message.channel.id, text: body, as_user: true)
-    }
-  end
-
-
-  # 抽出データソース
-  # @see https://toshia.github.io/writing-mikutter-plugin/basis/2016/09/20/extract-datasource.html
-  filter_extract_datasources do |ds|
-    Enumerator.new{|y|
-      Plugin.filtering(:worlds, y)
-    }.select{|world|
-      world.class.slug == :slack
-    }.each{|world|
-      world.team&.channels!&.each { |channel| ds[channel.datasource_slug] = channel.datasource_name }
-    }
-    [ds]
-  end
-
-  # 認証をブロードキャストする
-  # @example Plugin.call(:slack_auth)
-  on_slack_auth do
-    Plugin::Slack::API::Auth.oauth.next { |_|
-      start_realtime
-    }.trap { |err| error err }
-  end
-
-  world_setting(:slack, 'Slack') do
-    promise = Delayer::Deferred.new(true)
-    url = await(Plugin::Slack::API::Auth.request_authorize_url(promise))
-    label "認証用のURLをブラウザで開きました。\nブラウザでSlackにログインし、連携したいチームを選択してください。"
-    Plugin.call(:open, url)
-    token = await(promise)
-    world = await(Plugin::Slack::World.build(token))
-    label "#{world.team.name}(#{world.team.domain}) チームの #{world.user.name} としてログインしますか？"
-    world
-  end
-
-  # # 投稿をブロードキャストする
-  # # @example Plugin.call(:slack_post, channel_name, message)
-  # on_slack_post do |channel_name, message|
-  #   # Slackにメッセージの投稿
-  #   @team.channels.next { |channels|
-  #     channels.find { |c| c.name == channel_name }.post(message)
-  #   }.next { |res|
-  #     notice "Slack:#{channel_name}に投稿しました: #{res}"
-  #   }.trap { |err|
-  #     error "[#{self.class}] Slack:#{channel_name}への投稿に失敗しました: #{err}"
-  #   }
-  # end
-
-  # mikutter設定画面
-  # @see http://mikutter.blogspot.jp/2012/12/blog-post.html
-  settings('Slack') do
-    about('%s について' % Plugin::Slack::Environment::NAME,
-          program_name: Plugin::Slack::Environment::NAME,
-          copyright: '2016-2017 Naoki Maeda',
-          version: Plugin::Slack::Environment::VERSION,
-          comments: "サードパーティー製Slackクライアントの標準を夢見るmikutterプラグイン。\nこのプラグインは MIT License によって浄化されています。",
-          license: (file_get_contents('./LICENSE') rescue nil),
-          website: 'https://github.com/Na0ki/mikutter_slack.git',
-          authors: %w[ahiru3net toshi_a],
-          artists: %w[ahiru3net],
-          documenters: %w[ahiru3net toshi_a])
-  end
 end

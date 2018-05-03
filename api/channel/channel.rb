@@ -36,7 +36,7 @@ module Plugin::Slack
       def history(channel)
         Delayer::Deferred.when(
           team.next(&:user_dict),
-          Thread.new { query_history(channel) }
+          Thread.new { query_history(channel) }.trap { [] }
         ).next { |users, histories|
           histories.select { |history|
             users.key?(history['user'])

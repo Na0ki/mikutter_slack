@@ -8,14 +8,20 @@ module Plugin::Slack
     class PrivateChannel < Channel
       private def query_list
         channels = api.client.groups_list
-        Delayer::Deferred.fail(channels['error']) unless channels['ok']
-        channels['groups']
+        if channels['ok']
+          channels['groups']
+        else
+          []
+        end
       end
 
       private def query_history(channel)
         history = api.client.groups_history(channel: channel.id)
-        Delayer::Deferred.fail(history['error']) unless history['ok']
-        history['messages']
+        if history['ok']
+          history['messages']
+        else
+          []
+        end
       end
     end
   end

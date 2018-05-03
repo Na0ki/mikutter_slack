@@ -45,7 +45,7 @@ module Plugin::Slack
     # ユーザIDに対応するUserをcallbackするDeferredを返す。
     # IDに対応するユーザが見つからなかった場合は、nilを引数に、trapブロックが呼ばれる。
     #
-    # @param [String] ユーザID
+    # @param [String] user_id
     # @return [Delayer::Deferred::Deferredable] Userを引数にcallbackするDeferred
     def user(user_id)
       id_detector(users, user_id)

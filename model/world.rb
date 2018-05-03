@@ -1,17 +1,23 @@
+# frozen_string_literal: true
+
 require_relative '../api'
+
 module Plugin::Slack
+  # World model
   class World < Diva::Model
-    register :slack, name: "Slack"
+    register :slack, name: 'Slack'
 
     field.string :slug, required: true
     field.string :token, required: true
 
+    attr_writer :user
+
     def self.build(token)
       world = new(token: token, slug: '')
       Delayer::Deferred.when(
-        Thread.new{ world.api.client.auth_test },
+        Thread.new { world.api.client.auth_test },
         world.api.users.dict
-      ).next{|auth, user_map|
+      ).next { |auth, user_map|
         world.user = user_map[auth['user_id']]
         world.slug = "slack-#{auth['team_id']}-#{auth['user_id']}".to_sym
         world
@@ -21,18 +27,12 @@ module Plugin::Slack
     def initialize(args)
       notice args.inspect
       super(args)
-      if args[:user].is_a?(Hash)
-        user_refresh
-      end
+      user_refresh if args[:user].is_a?(Hash)
       api.realtime_start
     end
 
     def user
       @user || Plugin::Slack::User.new(self[:user])
-    end
-
-    def user=(new_user)
-      @user = new_user
     end
 
     def team
@@ -52,22 +52,22 @@ module Plugin::Slack
     end
 
     def to_hash
-      super.merge(user: {
-                    id: user.id,
-                    name: user.name,
-                    profile: {
-                      image_48: user[:profile][:image_48]
-                    }
-                  })
+      super.merge(
+        user: {
+          id: user.id,
+          name: user.name,
+          profile: { image_48: user[:profile][:image_48] }
+        }
+      )
     end
 
     # @deprecated Use compose spell instead.
-    def post(to: nil, message:, **kwrest)
+    def post(to: nil, message:, **_kwrest)
       Plugin[:slack].compose(self, to, body: message)
     end
 
     # @deprecated Use compose spell instead.
-    def postable?(target=nil)
+    def postable?(target = nil)
       Plugin[:slack].compose?(self, target)
     end
 
@@ -78,16 +78,14 @@ module Plugin::Slack
     private
 
     def user_refresh
-      api.users.dict.next{|user_map|
-        notice :hogehoge
+      api.users.dict.next { |user_map|
         notice user_map
         notice "user id: #{self[:user].inspect}"
         @user = user_map[self[:user][:id]]
         notice user.inspect
-      }.trap{|err|
+      }.trap { |err|
         error err
       }
     end
-
   end
 end

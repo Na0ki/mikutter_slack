@@ -35,7 +35,7 @@ module Plugin::Slack
     field.has :team, Plugin::Slack::Team, required: true
 
     def icon
-      Enumerator.new{|y| Plugin.filtering(:photo_filter, 'https://a.slack-edge.com/0499/img/ico/favicon.ico', y)}.first
+      Enumerator.new { |y| Plugin.filtering(:photo_filter, 'https://a.slack-edge.com/0499/img/ico/favicon.ico', y) }.first
     end
 
     def idname
@@ -76,7 +76,7 @@ module Plugin::Slack
     # @param [String] text 投稿メッセージ
     # @deprecated Use compose spell instead.
     def post(text)
-      world, = Plugin.filtering(:world_current, nil) unless world
+      world, = Plugin.filtering(:world_current, nil)
       Plugin[:slack].compose(self, world, body: text)
     end
 

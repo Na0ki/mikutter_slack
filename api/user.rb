@@ -14,7 +14,7 @@ module Plugin::Slack
         Delayer::Deferred.when(
           request_thread(:list) { api.client.users_list['members'] }, team
         ).next do |user_list, a_team|
-          user_list.map { |m| Plugin::Slack::User.new(m.symbolize.merge(team: a_team)) }
+          user_list&.map { |m| Plugin::Slack::User.new(m.symbolize.merge(team: a_team)) }
         end
       end
 

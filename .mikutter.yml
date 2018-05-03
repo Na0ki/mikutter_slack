@@ -5,6 +5,9 @@ depends:
   plugin:
     - world
     - spell
+    - settings
+    - command
+    - score
 version: 0.2.0
 author: ahiru
 name: slack

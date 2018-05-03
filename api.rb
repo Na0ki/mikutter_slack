@@ -24,9 +24,9 @@ module Plugin::Slack
 
       # Realtime APIに接続する
       def realtime_start
-        @realtime ||= Thread.new{
+        @realtime ||= Thread.new {
           Plugin::Slack::Realtime.new(self).start
-        }.trap{|err|
+        }.trap { |err|
           error err
         }
       end
